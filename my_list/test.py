@@ -21,3 +21,13 @@ print
 l.insert(1, 'Martin')
 l.insert(4, 'Peter')
 print str(l)
+
+print 'length : ' + str(l.length)
+
+print
+print l.index('1')
+
+print l[1]
+l[1] = 'Mike'
+print l[1]
+print l
