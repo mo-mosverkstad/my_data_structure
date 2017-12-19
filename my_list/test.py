@@ -27,6 +27,8 @@ print(f'length : {l.length}')
 print
 print(f'{l.index("1")}')
 
+print
+
 print(f'{l[1]}')
 l[1] = 'Mike'
 print(f'{l[1]}')
