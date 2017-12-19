@@ -7,27 +7,27 @@ l.append(1)
 l.append('Steffan')
 l.append(5)
 l.append('Johan')
-print str(l)
+print(f'{l}')
 
 print
 
-print l.get(0)
-print l.get(3)
-print l.get(-1)
-print l.get(8)
+print(f'{l.get(0)}')
+print(f'{l.get(3)}')
+print(f'{l.get(-1)}')
+print(f'{l.get(8)}')
 
 print
 
 l.insert(1, 'Martin')
 l.insert(4, 'Peter')
-print str(l)
+print(f'{l}')
 
-print 'length : ' + str(l.length)
+print(f'length : {l.length}')
 
 print
-print l.index('1')
+print(f'{l.index("1")}')
 
-print l[1]
+print(f'{l[1]}')
 l[1] = 'Mike'
-print l[1]
-print l
+print(f'{l[1]}')
+print(f'{l}')
