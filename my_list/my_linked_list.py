@@ -33,7 +33,7 @@ class my_linked_list:
             current_index = current_index + 1
         return current_node if current_index == index else None
 
-    def __check_index__(self, index):
+    def __check_index(self, index):
         if type(index) != int:
             raise IndexError("Index is not an integer")
         elif index >= self.length:
@@ -44,7 +44,7 @@ class my_linked_list:
             pass
 
     def insert(self, index, value):
-        self.__check_index__(index)
+        self.__check_index(index)
         print("Inserting index", index, "with value", value)
         node = Node(value)
         if index == 0:
@@ -58,15 +58,15 @@ class my_linked_list:
 
 
     def __getitem__(self, index):
-        self.__check_index__(index)
+        self.__check_index(index)
         return self.get(index).value
 
     def __setitem__(self, index, value):
-        self.__check_index__(index)
+        self.__check_index(index)
         self.get(index).value = value
 
     def __delitem__(self, index):
-        self.__check_index__(index)
+        self.__check_index(index)
         if self.length == 1:
             self.head = None
             self.tail = None
