@@ -32,6 +32,11 @@
     <Compile Include="my_queue_stack\my_queue.py" />
     <Compile Include="my_queue_stack\my_stack.py" />
     <Compile Include="my_queue_stack\__init__.py" />
+    <Compile Include="rpn\class_my_rpn.py" />
+    <Compile Include="rpn\__init__.py" />
+    <Compile Include="test_my_rpn.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test_my_array_queue.py">
       <SubType>Code</SubType>
     </Compile>
@@ -48,6 +53,7 @@
   <ItemGroup>
     <Folder Include="my_list\" />
     <Folder Include="my_queue_stack\" />
+    <Folder Include="rpn\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="PythonSettings.json" />

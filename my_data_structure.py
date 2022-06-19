@@ -92,6 +92,7 @@ s.pop()
 print(s.peek())
 """
 
+"""
 aq = my_array_queue(5)
 
 aq.enqueue("First item")
@@ -113,3 +114,13 @@ print(aq)
 print("Is empty", aq.is_empty(), ", is full", aq.is_full())
 print(aq.front(), aq.rear())
 print(len(aq))
+"""
+from rpn import my_rpn
+
+expr = '2+3*(6*8*7+2)-1'
+
+my_rpn_obj = my_rpn()
+queue = my_rpn_obj.create_rpn(expr)
+print(queue.get())
+result = my_rpn_obj.calculate_rpn(queue)
+print(result)

@@ -6,7 +6,7 @@ class my_stack:
         self.__stack.append(item)
 
     def pop(self):
-        self.__stack.pop()
+        return self.__stack.pop()
 
     def peek(self):
         return self.__stack[-1]

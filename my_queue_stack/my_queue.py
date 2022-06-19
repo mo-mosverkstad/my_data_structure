@@ -19,3 +19,6 @@ class my_queue:
 
     def __repr__(self):
         return "my_queue(" + str(len(self)) + ")[" + str(self.front()) + " ... " + str(self.rear()) + "]"
+
+    def get(self):
+        return self.__queue
