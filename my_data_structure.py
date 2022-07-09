@@ -1,6 +1,24 @@
+from typing import Optional
 from my_list import *
-from my_queue_stack import *
-from my_queue_stack.my_array_queue import my_array_queue
+#from my_queue_stack import *
+#from my_queue_stack.my_array_queue import my_array_queue
+
+
+from my_tree import my_binary_tree
+
+root = my_binary_tree.build_tree(1, \
+    my_binary_tree.build_tree(2, \
+        my_binary_tree.build_tree(8, \
+            my_binary_tree.build_tree(10)), \
+        my_binary_tree.build_tree(9, \
+            my_binary_tree.build_tree(11))), \
+    my_binary_tree.build_tree(3, \
+        my_binary_tree.build_tree(4, \
+            my_binary_tree.build_tree(6), \
+            my_binary_tree.build_tree(7)), \
+        my_binary_tree.build_tree(5)))
+
+my_binary_tree.traverse_width(root)
 
 """
 al = my_linear_list(8)
@@ -115,6 +133,8 @@ print("Is empty", aq.is_empty(), ", is full", aq.is_full())
 print(aq.front(), aq.rear())
 print(len(aq))
 """
+
+"""
 from rpn import my_rpn
 
 expr = '2+3*(6*8*7+2)-1'
@@ -124,3 +144,6 @@ queue = my_rpn_obj.create_rpn(expr)
 print(queue.get())
 result = my_rpn_obj.calculate_rpn(queue)
 print(result)
+"""
+
+

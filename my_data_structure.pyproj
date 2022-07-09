@@ -32,6 +32,9 @@
     <Compile Include="my_queue_stack\my_queue.py" />
     <Compile Include="my_queue_stack\my_stack.py" />
     <Compile Include="my_queue_stack\__init__.py" />
+    <Compile Include="my_tree\my_binary_tree.py" />
+    <Compile Include="my_tree\tree_binary_node.py" />
+    <Compile Include="my_tree\__init__.py" />
     <Compile Include="rpn\class_my_rpn.py" />
     <Compile Include="rpn\__init__.py" />
     <Compile Include="test_my_rpn.py">
@@ -53,6 +56,7 @@
   <ItemGroup>
     <Folder Include="my_list\" />
     <Folder Include="my_queue_stack\" />
+    <Folder Include="my_tree\" />
     <Folder Include="rpn\" />
   </ItemGroup>
   <ItemGroup>
