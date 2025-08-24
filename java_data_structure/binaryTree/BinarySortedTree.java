@@ -71,50 +71,17 @@ public class BinarySortedTree <T extends Comparable<T>> extends Tree <T>{
             return;
         }
         TreeNode<T> treeNode = treeNodeOptional.get();
-        TreeNode<T> parentTreeNode = treeNode.getParent();
         
         if (treeNode.getLeft() == null && treeNode.getRight() == null){
-            if (parentTreeNode == null){
-                setRoot(new TreeNode<T>(null));
-            }
-            else{
-                if (parentTreeNode.getLeft() == treeNode) {
-                    parentTreeNode.deleteLeft();
-                } else if (parentTreeNode.getRight() == treeNode){
-                    parentTreeNode.deleteRight();
-                }
-            }
+            replaceTreeNode(treeNode, null);
         }
         else if (treeNode.getLeft() != null && treeNode.getRight() == null){
-            TreeNode<T> replaceTreeNode = treeNode.getLeft();
+            replaceTreeNode(treeNode, treeNode.getLeft());
             treeNode.deleteLeft();
-            if (parentTreeNode == null) {
-                setRoot(replaceTreeNode);
-            }
-            else{
-                if (parentTreeNode.getLeft() == treeNode) {
-                    parentTreeNode.setLeft(replaceTreeNode);
-                }
-                else if (parentTreeNode.getRight() == treeNode){
-                    parentTreeNode.setRight(replaceTreeNode);
-                }
-            }
         }
         else if (treeNode.getLeft() == null && treeNode.getRight() != null){
-            TreeNode<T> replaceTreeNode = treeNode.getRight();
+            replaceTreeNode(treeNode, treeNode.getRight());
             treeNode.deleteRight();
-            // System.out.println(treeNode);
-            if (parentTreeNode == null) {
-                setRoot(replaceTreeNode);
-            }
-            else{
-                if (parentTreeNode.getLeft() == treeNode) {
-                    parentTreeNode.setLeft(replaceTreeNode);
-                }
-                else if (parentTreeNode.getRight() == treeNode){
-                    parentTreeNode.setRight(replaceTreeNode);
-                }
-            }
         }
         else if (treeNode.getLeft() != null && treeNode.getRight() != null){
             TreeNode<T> replaceTreeNode = treeNode.getLeft();
@@ -127,14 +94,28 @@ public class BinarySortedTree <T extends Comparable<T>> extends Tree <T>{
                 replaceTreeNode.getParent().setRight(subReplaceTreeNode);
             }
             TreeNode<T> replaceTreeNodeParent = replaceTreeNode.getParent();
-            if (replaceTreeNodeParent.getLeft() == replaceTreeNode) {
+            if (replaceTreeNode.isLeftChild()) {
                 replaceTreeNodeParent.deleteLeft();
             }
-            else if (replaceTreeNodeParent.getRight() == replaceTreeNode){
+            else if (replaceTreeNode.isRightChild()){
                 replaceTreeNodeParent.deleteRight();
             }
             treeNode.setVal(replaceTreeNode.getVal());
         }
     }
 
+    private void replaceTreeNode (TreeNode<T> treeNode, TreeNode<T> replaceTreeNode) {
+        TreeNode<T> parentTreeNode = treeNode.getParent();
+        if (parentTreeNode == null) {
+            setRoot(replaceTreeNode);
+        }
+        else{
+            if (treeNode.isLeftChild()) {
+                parentTreeNode.setLeft(replaceTreeNode);
+            }
+            else if (treeNode.isRightChild()){
+                parentTreeNode.setRight(replaceTreeNode);
+            }
+        }
+    }
 }

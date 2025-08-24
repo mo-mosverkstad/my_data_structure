@@ -70,6 +70,14 @@ public class TreeNode <T>{
         return right;
     }
 
+    public boolean isLeftChild () {
+        return parent != null && parent.getLeft() == this;
+    }
+
+    public boolean isRightChild () {
+        return parent != null && parent.getRight() == this;
+    }
+    
     @Override
     public String toString() {
         return String.format(TREE_FORMAT, val, left, right, parent==null?"":parent.getVal());
