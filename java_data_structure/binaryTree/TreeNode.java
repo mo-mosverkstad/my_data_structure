@@ -1,22 +1,26 @@
 public class TreeNode <T>{
 
-    private static String TREE_FORMAT = "TreeNode{val=%s, left=%s, right=%s}";
+    private static String TREE_FORMAT = "TreeNode{val=%s, left=%s, right=%s, parent=%s}";
 
-    public T val;
-    public TreeNode <T> left;
-    public TreeNode <T> right;
+    private T val = null;
+    private TreeNode <T> left = null;
+    private TreeNode <T> right = null;
+    private TreeNode <T> parent = null;
 
     public TreeNode (T val) {
         this.val = val;
         this.left = null;
         this.right = null;
+        this.parent = null;
     }
 
     public TreeNode (T val, TreeNode <T> left, TreeNode <T> right) {
         this.val = val;
         this.left = left;
         this.right = right;
+        this.parent = null;
     }
+
 
     public void setVal (T val) {
         this.val = val;
@@ -26,16 +30,40 @@ public class TreeNode <T>{
         return val;
     }
 
+    protected void setParent (TreeNode <T> parent) {
+        this.parent = parent;
+    }
+
+    public TreeNode<T> getParent () {
+        return parent;
+    }
+
     public void setLeft (TreeNode <T> left) {
+        if (left == null) {
+            return;
+        }
+        left.setParent(this);
         this.left = left;
     }
 
-    public void setRight (TreeNode <T> right) {
-        this.right = right;
+    public void deleteLeft() {
+        this.left = null;
     }
 
     public TreeNode <T> getLeft () {
         return left;
+    }
+
+    public void setRight (TreeNode <T> right) {
+        if (right == null) {
+            return;
+        }
+        right.setParent(this);
+        this.right = right;
+    }
+
+    public void deleteRight() {
+        this.right = null;
     }
 
     public TreeNode <T> getRight () {
@@ -44,6 +72,6 @@ public class TreeNode <T>{
 
     @Override
     public String toString() {
-        return String.format(TREE_FORMAT, val, left, right);
+        return String.format(TREE_FORMAT, val, left, right, parent==null?"":parent.getVal());
     }
 } 
