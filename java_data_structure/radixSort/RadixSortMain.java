@@ -9,9 +9,13 @@ public class RadixSortMain {
     public static int[] radixSort(int[] array){
         int size = array.length;
         int maxValue = max(array);
+
+        int[] output = new int[size];
+        int[] count = new int[10];
         for (int exp = 1; maxValue / exp > 0; exp *= 10){
-            int[] output = new int[size];
-            int[] count = new int[10];
+            for (int i = 0; i < count.length; i++){
+                count[i] = 0;
+            }
 
             for (int number : array){
                 int digit = (number / exp) % 10;
