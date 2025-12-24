@@ -7,3 +7,4 @@ enable_testing()
 
 add_subdirectory(heap)
 add_subdirectory(hashtable)
+add_subdirectory(binary_search_tree)

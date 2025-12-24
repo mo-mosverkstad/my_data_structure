@@ -1,0 +1,8 @@
+add_library(binary_search_tree binary_search_tree.c binary_search_tree.h)
+
+add_executable(test_binary_search_tree test_binary_search_tree.c)
+target_link_libraries(test_binary_search_tree binary_search_tree)
+target_include_directories(test_binary_search_tree PRIVATE ../test_framework)
+
+enable_testing()
+add_test(NAME cmake_test_binary_search_tree COMMAND test_binary_search_tree)
