@@ -35,5 +35,5 @@ int main() {
     RUN_TEST(test_heap_create);
     RUN_TEST(test_heap_add);
     RUN_TEST(test_heap_delete);
-    return 0;
+    TEST_MAIN_END();
 }

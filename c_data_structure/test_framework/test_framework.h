@@ -2,6 +2,9 @@
 #define TEST_FRAMEWORK_H
 
 #include <stdio.h>
+#include <stdlib.h>
+
+static int test_failures = 0;
 
 #define ASSERT_EQ(expected, actual) \
     do { \
@@ -26,7 +29,18 @@
             printf("PASS\n"); \
         } else { \
             printf("FAIL\n"); \
+            test_failures++; \
         } \
+    } while(0)
+
+#define TEST_MAIN_END() \
+    do { \
+        if (test_failures > 0) { \
+            printf("\nTests failed: %d\n", test_failures); \
+            exit(1); \
+        } \
+        printf("\nAll tests passed!\n"); \
+        exit(0); \
     } while(0)
 
 #endif
