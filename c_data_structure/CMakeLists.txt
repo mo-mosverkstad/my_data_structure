@@ -7,6 +7,7 @@ enable_testing()
 
 add_subdirectory(linked_list)
 add_subdirectory(linked_list_raw)
+add_subdirectory(linked_queue)
 add_subdirectory(linked_stack)
 add_subdirectory(array_queue)
 add_subdirectory(binary_search_tree)
