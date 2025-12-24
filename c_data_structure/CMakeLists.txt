@@ -5,7 +5,8 @@ set(CMAKE_C_STANDARD 99)
 
 enable_testing()
 
+add_subdirectory(linked_list)
+add_subdirectory(array_queue)
+add_subdirectory(binary_search_tree)
 add_subdirectory(heap)
 add_subdirectory(hashtable)
-add_subdirectory(binary_search_tree)
-add_subdirectory(array_queue)
