@@ -1,0 +1,8 @@
+add_library(linked_list_raw linked_list_raw.c linked_list_raw.h)
+
+add_executable(test_linked_list_raw test_linked_list_raw.c)
+target_link_libraries(test_linked_list_raw linked_list_raw)
+target_include_directories(test_linked_list_raw PRIVATE ../test_framework)
+
+enable_testing()
+add_test(NAME cmake_test_linked_list_raw COMMAND test_linked_list_raw)
