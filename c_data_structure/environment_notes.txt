@@ -1,0 +1,2 @@
+mowan@LAPTOP-F6TB3L8I:/mnt/c/Users/mowan/source/repos/my_data_structure$ mkdir build
+mowan@LAPTOP-F6TB3L8I:/mnt/c/Users/mowan/source/repos/my_data_structure/build$ cmake ../c_data_structure/ && make && ctest
