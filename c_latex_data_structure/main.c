@@ -8,19 +8,13 @@
 #include <time.h>
 #include <limits.h>
 
-
-
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
 }
 
-
-
 long random_access_benchmark(int n, int loop) {
     int *array = malloc(n * sizeof(int));
     int *index_array = malloc(loop * sizeof(int));
-
-
 
     for (int i = 0; i < n; i++){
         array[i] = i;
@@ -29,20 +23,14 @@ long random_access_benchmark(int n, int loop) {
         index_array[i] = rand() % n;
     }
 
-
-
     struct timespec t_start, t_stop;
     int sum = 0;
-
-
 
     clock_gettime(CLOCK_MONOTONIC, &t_start);
     for (int i = 0; i < loop; i++){
         sum += array[index_array[i]];
     }
     clock_gettime(CLOCK_MONOTONIC, &t_stop);
-
-
 
     free(array);
     free(index_array);
