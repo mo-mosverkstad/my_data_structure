@@ -8,9 +8,9 @@ stack in two versions, one static and one dynamic
 
 static (provide maximum capacity size, may overflow):
 - Does the pointer point to the location above the top of the stack or does it point to the top of the stack?
-- What is the value of the pointer when the stack is empty?
-- What should you do when a program tries to push a value on a full stack (stack overflow)?
-- What should happen when someone pops an item from an empty stack?
+- What is the value of the pointer when the stack is empty?
+- What should you do when a program tries to push a value on a full stack (stack overflow)?
+- What should happen when someone pops an item from an empty stack?
 
 There is always the question what should be done if someone tries to perform an operation that can not be done; what should we do if we try to pop an item from an empty stack? -> Result<...> (similar to Rust), tell caller function about operation being successed or failed
 

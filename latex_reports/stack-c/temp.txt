@@ -1,0 +1,71 @@
+1. Introduction: 
+Briefly explain what Reverse Polish Notation is.
+State the purpose of the assignment:
+ - learn stack usage
+ - compare static vs dynamic stack implementations
+ - implement a simple terminal-based calculator
+ 
+2. Design of the Stack Implementations
+2.1 Static Stack
+ - Maximum capacity and why it exists.
+ - Pointer/index convention:
+  - Does it point to the top element or one past the top?
+ - What the pointer value is when the stack is empty.
+ - How overflow is handled.
+ - How underflow is handled.
+ - What your Result-like return type looks like.
+ 
+ 
+a static stack with fixed capacity
+correct pointer convention (top points to first free slot)
+correct empty stack state (top = 0)
+correct overflow handling (push returns false)
+correct underflow handling (PopResult.success = false)
+correct memory allocation and cleanup
+a working demonstration in main()
+ 
+2.2 Dynamic Stack
+ - How memory is allocated and resized.
+ - Growth strategy (doubling, fixed increments, etc.).
+ - How you detect allocation failure.
+ - How underflow is handled.
+ - How memory is freed.
+ 
+You explain the growth strategy (double capacity). (push until full) -> grow by doubling
+You explain the shrink strategy (shrink when <25% full).  -> avoid growth-shrink oscillation, avoid bouncing between two capacities
+You explain the minimum capacity size (e.g., 4), since too frequent oscillation happens here -> prevents pathological tiny stacks
+You explain the reasoning: avoid oscillation, reduce realloc calls, maintain amortized O(1) push/pop.
+You show a small example of the stack growing and shrinking.
+ 
+2.5 Error handling stragegy (SHORT)
+ - Equivalence of Rust's Result<T> in C
+ - Explain how stack operations report success/failure.
+ - Explain how calculator operations check these results.
+ - Mention how invalid input or invalid operations are handled
+ 
+
+-- To answer --
+- Does the pointer point to the location above the top of the stack or does it point to the top of the stack?
+- What is the value of the pointer when the stack is empty?
+- What should you do when a program tries to push a value on a full stack (stack overflow)?
+- What should happen when someone pops an item from an empty stack?
+
+There is always the question what should be done if someone tries to perform an operation that can not be done; what should we do if we try to pop an item from an empty stack? -> Result<...> (similar to Rust), tell caller function about operation being successed or failed
+
+---
+ 
+3. Calculator implementations
+ - How tokens are read from stdin.
+ - How you distinguish numbers from operators.
+ - How each operator works (pop two values, compute, push result).
+ - How division by zero is handled.
+ - How the calculator behaves when the stack is in an invalid state.
+ 
+4. Experiments and testing (MOST IMPORTANT)
+This is where you show that you “experimented with both versions of the stack.”
+Include:
+Example expressions you tested.
+Differences in behavior between static and dynamic stacks.
+What happens when the static stack overflows.
+What happens when you pop from an empty stack.
+The evaluation of the example expression:

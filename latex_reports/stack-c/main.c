@@ -1,41 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-
-// static stack
-
-typedef struct stack {
-    int top;
-    int size;
-    int *array;
-} stack;
-
-stack *new_stack(int size) {
-    int *array = (int*) malloc(size*sizeof(int));
-    stack *stk = (stack*) malloc(sizeof(stack));
-    ...
-    return stk;
-}
-
-void push(stack *stk, int val) {
-    ...
-}
-
-int pop(stack *stk) {
-    ...
-}
-
-int main() {
-    stack *stk = new_stack(4);
-    push(stk, 32);
-    push(stk, 33);
-    push(stk, 34);
-    printf("pop : %d\n", pop(stk));
-    printf("pop : %d\n", pop(stk));
-    printf("pop : %d\n", pop(stk));
-}
-
-// does it work???
-
+/*
 int main() {
     stack *stk = stack(4);
     int n = 10;
@@ -50,4 +13,33 @@ int main() {
         printf("pop : %d\n", val);
         val = pop(stk);
     }
+}
+*/
+
+int main() {
+    stack *stk = stack();
+    printf("HP-35 pocket calculator\n");
+    int n = 10;
+    char *buffer = malloc(n);
+    bool running = true;
+    while(running) {
+        printf(" > ");
+        fgetc(buffer, n, stdin);
+    if (strcmp(buffer, "\n") == 0) {
+        running = false;
+    }
+    else if (strcmp(buffer, "+\n") == 0) {
+        int a = pop(stk);
+        int b = pop(stk);
+        push(stk, a+b);
+    }
+    else
+        // add something here???...
+    } else {
+        int val = atoi(buffer);
+    push(stk, val);
+    }
+}
+printf("the result is: %d\n\n", pop(stk));
+printf("I love reversed polish notation, don't you?\n");
 }
