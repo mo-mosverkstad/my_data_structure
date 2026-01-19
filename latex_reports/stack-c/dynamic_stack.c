@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "result.h"
 
 #define MIN_STACK_SIZE 4
 
@@ -9,11 +10,6 @@ typedef struct dynamic_stack{
     unsigned int size;
     int *array;
 } dynamic_stack;
-
-typedef struct PopResult{
-    bool success;
-    int value;
-} PopResult;
 
 dynamic_stack *dynamic_stack_new(unsigned int size) {
     dynamic_stack *stk = malloc(sizeof(dynamic_stack));
@@ -41,7 +37,7 @@ bool dynamic_stack_push(dynamic_stack *stk, int val) {
         if (!new_array){
             return false;
         }
-        for (int i = 0; i < stk->top; i++){
+        for (unsigned int i = 0; i < stk->top; i++){
             new_array[i] = stk->array[i];
         }
         free(stk->array);
@@ -52,9 +48,9 @@ bool dynamic_stack_push(dynamic_stack *stk, int val) {
     return true;
 }
 
-PopResult dynamic_stack_pop(dynamic_stack *stk) {
+Result dynamic_stack_pop(dynamic_stack *stk) {
     if (stk->top == 0) {
-        return (PopResult){ .success = false, .value = 0 };
+        return (Result){ .success = false, .value = 0 };
     }
     
     int popped = stk->array[--stk->top];
@@ -62,7 +58,7 @@ PopResult dynamic_stack_pop(dynamic_stack *stk) {
         unsigned int new_size = stk->size / 2;
         int *new_array = malloc(new_size * sizeof(int));
         if (new_array){
-            for (int i = 0; i < stk->top; i++){
+            for (unsigned int i = 0; i < stk->top; i++){
                 new_array[i] = stk->array[i];
             }
             free(stk->array);
@@ -70,43 +66,16 @@ PopResult dynamic_stack_pop(dynamic_stack *stk) {
             stk->size = new_size;
         }
     }
-    return (PopResult){ .success = true, .value = popped };
+    return (Result){ .success = true, .value = popped };
 }
 
 void dynamic_stack_print(dynamic_stack* stk){
-    printf("(%d)[", stk->size);
+    printf("dynamic_stack(%d)[", stk->size);
     if (stk->top > 0){
-        for (int i = 0; i < stk->top-1; i++){
+        for (unsigned int i = 0; i < stk->top-1; i++){
             printf("%d, ", stk->array[i]);
         }
         printf("%d", stk->array[stk->top-1]);
     }
     printf("]\n");
-}
-
-
-int main() {
-    dynamic_stack *stk = dynamic_stack_new(MIN_STACK_SIZE);
-    for (int i = 0; i < 105; i++){
-        bool result = dynamic_stack_push(stk, i);
-        if (!result){
-            printf("PROBLEM: Push problem");
-            break;
-        }
-    }
-
-    PopResult r;
-    for (int i = 0; i < 82; i++){
-        r = dynamic_stack_pop(stk);
-        if (r.success){
-            printf("stack_pop : %d\n", r.value);
-        }
-        else{
-            printf("PROBLEM: Pop problem");
-            break;
-        }
-    }
-
-    dynamic_stack_print(stk);
-    dynamic_stack_delete(stk);
 }

@@ -1,17 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "result.h"
 
 typedef struct static_stack{
     unsigned int top;
     unsigned int size;
     int *array;
 } static_stack;
-
-typedef struct PopResult{
-    bool success;
-    int value;
-} PopResult;
 
 static_stack *static_stack_new(unsigned int size) {
     static_stack *stk = malloc(sizeof(static_stack));
@@ -41,40 +37,20 @@ bool static_stack_push(static_stack *stk, int val) {
     return true;
 }
 
-PopResult static_stack_pop(static_stack *stk) {
+Result static_stack_pop(static_stack *stk) {
     if (stk->top == 0) {
-        return (PopResult){ .success = false, .value = 0 };
+        return (Result){ .success = false, .value = 0 };
     }
-    return (PopResult){ .success = true, .value = stk->array[--stk->top] };
+    return (Result){ .success = true, .value = stk->array[--stk->top] };
 }
 
 void static_stack_print(static_stack* stk){
-    printf("[");
+    printf("static_stack(%d)[", stk->size);
     if (stk->top > 0){
-        for (int i = 0; i < stk->top-1; i++){
+        for (unsigned int i = 0; i < stk->top-1; i++){
             printf("%d, ", stk->array[i]);
         }
         printf("%d", stk->array[stk->top-1]);
     }
     printf("]\n");
-}
-
-
-int main() {
-    static_stack *stk = static_stack_new(4);
-    static_stack_push(stk, 32);
-    static_stack_push(stk, 33);
-    static_stack_push(stk, 34);
-    static_stack_push(stk, 55);
-
-    PopResult r;
-    r = static_stack_pop(stk);
-    if (r.success) printf("stack_pop : %d\n", r.value);
-    r = static_stack_pop(stk);
-    if (r.success) printf("stack_pop : %d\n", r.value);
-    r = static_stack_pop(stk);
-    if (r.success) printf("stack_pop : %d\n", r.value);
-
-    static_stack_print(stk);
-    static_stack_delete(stk);
 }

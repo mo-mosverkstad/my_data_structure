@@ -1,45 +1,54 @@
-/*
-int main() {
-    stack *stk = stack(4);
-    int n = 10;
-    for(int i = 0; i < n; i++) {
-        push(stk, i+30);
+#include <string.h>
+#include "dynamic_stack.h"
+#include "result.h"
+
+bool apply_op(dynamic_stack *stk, char op) {
+    Result B = dynamic_stack_pop(stk);
+    Result A = dynamic_stack_pop(stk);
+    if (!A.success || !B.success) return false;
+    int result;
+    switch(op) {
+        case '+': result = A.value + B.value; break;
+        case '-': result = A.value - B.value; break;
+        case '*': result = A.value * B.value; break;
+        case '/': result = A.value / B.value; break;
     }
-    for(int i = 0; i < stk->top; i++) {
-        printf("stack[%d] : %d\n", i, stk->array[i]);
-    }
-    int val = pop(stk);
-    while(val != 0) { // assuming 0 is returned when the stack is empty
-        printf("pop : %d\n", val);
-        val = pop(stk);
-    }
+    dynamic_stack_push(stk, result);
+    return true;
 }
-*/
 
 int main() {
-    stack *stk = stack();
+    dynamic_stack *stk = dynamic_stack_new(16);
     printf("HP-35 pocket calculator\n");
     int n = 10;
     char *buffer = malloc(n);
     bool running = true;
     while(running) {
         printf(" > ");
-        fgetc(buffer, n, stdin);
-    if (strcmp(buffer, "\n") == 0) {
-        running = false;
+        fgets(buffer, n, stdin);
+        if (strcmp(buffer, "\n") == 0) {
+            running = false;
+        }
+        else if (strchr("+-*/", buffer[0]) && buffer[1] == '\n') {
+            if (!apply_op(stk, buffer[0])) {
+                printf("PROBLEM: STACK PROBLEM\n\n");
+                running = false;
+            }
+        }
+        else {
+            int val = atoi(buffer);
+            dynamic_stack_push(stk, val);
+        }
+        printf("Stack: ");
+        dynamic_stack_print(stk);
     }
-    else if (strcmp(buffer, "+\n") == 0) {
-        int a = pop(stk);
-        int b = pop(stk);
-        push(stk, a+b);
+    Result final_result = dynamic_stack_pop(stk);
+    if (final_result.success){
+        printf("SUCCESS: The result is: %d\n", final_result.value);
     }
-    else
-        // add something here???...
-    } else {
-        int val = atoi(buffer);
-    push(stk, val);
+    else{
+        printf("PROBLEM: STACK PROBLEM\n");
     }
-}
-printf("the result is: %d\n\n", pop(stk));
-printf("I love reversed polish notation, don't you?\n");
+    free(buffer);
+    dynamic_stack_delete(stk);
 }

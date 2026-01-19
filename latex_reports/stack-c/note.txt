@@ -1,0 +1,80 @@
+C compilation and building:
+
+1. Compilation step: First, compilation is done by
+gcc -c <filename>.c -> generates <filename>.o
+
+This actually performs:
+Preprocessing macro (#include, #define)
+Compilation (C -> assembly)
+Assembly (assembly -> machine code)
+
+Result: <filename>.o:
+Contains machine code but unexecutable
+Has unresolved symbols (external functions/variables)
+
+2. Linking step: Second, linking is done by (meet all dependencies)
+gcc <file1>.o <file2>.o ... -o <executable_name>
+
+Resolves function/variable references between .o files
+Pulls in required libraries (libc, etc.)
+Produces a final executable
+
+
+Input files: What gcc does
+.c only: Compile + link
+.c + -c: Compile only
+.o only: Link only
+.o + .c: Compile .c, then link
+
+source.c  --gcc -c-->  source.o  --gcc-->  executable
+source1.c + source2.c --gcc--> executable
+
+Makefile:
+1. -- Structure --:
+
+<target_file>: <dependency_file_1> <dependency_file_2> <dependency_file_3> <...>
+    <command>
+
+2. -- Variables --:
+e.g.
+CC      = gcc
+CFLAGS  = -Wall -Wextra -Werror
+OBJ     = main.o dynamic_stack.o
+TARGET  = program
+
+-- Variable usage --:
+$(TARGET): $(OBJ)
+	$(CC) $(OBJ) -o $(TARGET)
+
+main.o: main.c dynamic_stack.h
+	$(CC) $(CFLAGS) -c main.c
+
+dynamic_stack.o: dynamic_stack.c dynamic_stack.h
+	$(CC) $(CFLAGS) -c dynamic_stack.c
+
+3. -- Special targets --:
+-- all->default target --: all: $(TARGET)
+(This means running make with no arguments builds all)
+
+clean:
+	rm -f $(OBJ) $(TARGET)
+call it via "make clean"
+
+4. -- Pattern rules --:
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c $<
+
+%: wildcard (e.g. %.o: %.c %.h, only in dependency part)
+$<: first dependency (main.c, dynamic_stack.c, etc.) (only in command)
+Symbol	Where it’s used	Meaning
+%	target or dependencies	wildcard/stem in a pattern rule
+$<	commands	first dependency
+$@	commands	target of the rule
+$^	commands	all dependencies
+
+5. 
+make looks at timestamps:
+If dynamic_stack.h changes -> both main.o and dynamic_stack.o need rebuild
+If main.c changes -> only main.o needs rebuild
+If dynamic_stack.c changes -> only dynamic_stack.o needs rebuild
+After updating .o files -> program will be relinked

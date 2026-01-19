@@ -1,0 +1,19 @@
+# Object files
+*.o
+
+# Executables
+main
+program
+*.out
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# Dependency files
+*.d
+
+# IDE / editor folders (optional)
+.vscode/
+.idea/
