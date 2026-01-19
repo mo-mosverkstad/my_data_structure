@@ -1,0 +1,1 @@
+In this assignment you should implement a calculator that can calculate mathematical expressions described using reverse Polish notation. We do this in order to see how a stack can be used.
