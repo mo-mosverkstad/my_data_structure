@@ -1,1 +1,22 @@
+A Calculator in C
+
 In this assignment you should implement a calculator that can calculate mathematical expressions described using reverse Polish notation. We do this in order to see how a stack can be used.
+
+The calculator itself is very simple in its design. It will keep a stack that is used to store the numbers we enter and the results computed. It will read input from the terminal and either push the values on the stack or pop the required arguments, perform the calculation and push the result.
+
+stack in two versions, one static and one dynamic
+
+static (provide maximum capacity size, may overflow):
+- Does the pointer point to the location above the top of the stack or does it point to the top of the stack?
+- What is the value of the pointer when the stack is empty?
+- What should you do when a program tries to push a value on a full stack (stack overflow)?
+- What should happen when someone pops an item from an empty stack?
+
+There is always the question what should be done if someone tries to perform an operation that can not be done; what should we do if we try to pop an item from an empty stack? -> Result<...> (similar to Rust), tell caller function about operation being successed or failed
+
+You experiment using the two versions of the stack in order to see that things work
+
+Once we have a stack we can implement a calculator. We will not implement a fancy graphical interface, we will simply interact using the terminal.
+
+
+What is the result of: 4 2 3 * 4 + 4 * + 2 - ... so you know the answer, do you know the question?
