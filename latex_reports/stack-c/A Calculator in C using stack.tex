@@ -1,0 +1,162 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+
+\usepackage{minted}
+
+\begin{document}
+
+\title{
+    \textbf{A Calculator in C using stack}
+}
+\author{Mo Wang}
+\date{Spring 2026}
+
+\maketitle
+
+\section*{Introduction}
+
+This report delve into the implementation of a calculator in C using reversed Polish notation with a stack. The purpose of the report is to learn practical application of a stack data structure as well as to compare differences between static and dynamic stack, by implementing a simple terminal-based calculator supporting reversed Polish notation.
+
+\section*{Different stack implementations}
+
+Because a stack is an array that supports only push and pop operations, it can be implemented with either with a fixed capacity size or a dynamically growing capacity size. A stack with a fixed capacity size is called a static stack, while the other one that can grow and shrink is called a dynamic stack. Both types of stacks are discussed below.
+
+\subsection*{Static stacks}
+
+A static stack has a fixed maximum capacity because heap allocation of the stack array requires a pre-defined size to fit within the available memory blocks. The stack has a stack pointer (or index) named \texttt{top} that points to the element immediately after the topmost element, effectively pointing to the next free slot, which follows the stack pointer convention. This convention becomes especially clear in an empty stack, where the \texttt{top} index points to the first element at index zero.
+
+\begin{minted}{c}
+  typedef struct static_stack{
+      unsigned int top;
+      unsigned int size;
+      int *array;
+  } static_stack;
+\end{minted}
+
+A static stack has two different operations, push and pop. The push operation overlays the given element above the topmost element of the stack, which means that the element is written using stack index, while incrementing it. On the other hand, pop operation removes the topmost element, revealing the element beneath it, by decrementing the stack index and returning the element at its position. The operations are shown below in functions \texttt{static\_stack\_push} and \texttt{static\_stack\_push}.
+
+\begin{minted}{c}
+  void static_stack_push(static_stack *stk, int val) {
+      stk->array[stk->top++] = val;
+  }
+
+  int static_stack_pop(static_stack *stk) {
+      return stk->array[--stk->top];
+  }
+\end{minted}
+
+However, attempting to push an element beyond its capacity size or pop an element when empty results in accessing out-of-bounds memory and causes undefined behavior. To mitigate this issue, the stack pointer \texttt{top} will be checked before performing any operation. The push operation fails when stack pointer reaches the array capacity while pop operation fails when stack pointer is zero.
+
+For reporting operation success, the push function can return \texttt{true} if successful, and the pop function can return a \texttt{Result} struct containing a boolean success flag and an integer value for the popped element. By catching the success flag, the caller function can determine the status of the operation.
+
+\begin{minted}{c}
+  typedef struct Result{
+      bool success;
+      int value;
+  } Result;
+
+  bool static_stack_push(static_stack *stk, int val) {
+      if (stk->top >= stk->size) {
+          return false;
+      }
+      // push operation
+      return true;
+  }
+
+  Result static_stack_pop(static_stack *stk) {
+      if (stk->top == 0) {
+          return (Result){ .success = false, .value = 0 };
+      }
+      // pop operation to variable value
+      return (Result){ .success = true, .value = value };
+  }
+\end{minted}
+
+
+\subsection*{Dynamic stacks}
+
+Implementing a dynamic stack that allow growth and shrink is similar compared to a static stack, especially in terms of struct variables and creating as well as destroying the stack. The key difference relies in array resizing by reallocating memory data from one size to another one, as well as keeping the current array capacity in variable \texttt{size}, which is kept fixed in static stacks.
+
+\begin{minted}{c}
+  typedef struct dynamic_stack{
+      unsigned int top;
+      unsigned int size;
+      int *array;
+  } dynamic_stack;
+\end{minted}
+
+During push operation in a full array, the stack allocates another twice as large array and copies all the existing elements into the new one. This resizing approach ensures constant amortized time complexity $O(1)$ since each operation involves on average one write and one copy operation.
+
+Shrinking the array, on the other hand, is also important to free memory when the number of elements decreases. However, reducing array size whenever it falls below half its capacity can lead to array thrashing during repeatedly growth and shrinks around the same size. To prevent this, the array is only shrunk when the number of elements drops strictly below one fourth of the current capacity. Additionally, the array will shrink below certain minimum capacity size, in this case 4, in order to prevent frequent grow-shrink oscillation of tiny stacks.
+
+\begin{minted}{c}
+  bool dynamic_stack_push(dynamic_stack *stk, int val) {
+      if (stk->top >= stk->size) {
+          unsigned int new_size = stk->size * 2;
+          int *new_array = malloc(new_size * sizeof(int));
+          if (!new_array){
+              return false;
+          }
+          for (unsigned int i = 0; i < stk->top; i++){
+              new_array[i] = stk->array[i];
+          }
+          free(stk->array);
+          stk->array = new_array;
+          stk->size = new_size;
+      }
+      stk->array[stk->top++] = val;
+      return true;
+  }
+  
+  Result dynamic_stack_pop(dynamic_stack *stk) {
+      if (stk->top == 0) {
+          return (Result){ .success = false, .value = 0 };
+      }
+      
+      int popped = stk->array[--stk->top];
+      if (stk->top > 0 && stk->top < stk->size/4 && stk->size > MIN_STACK_SIZE){
+          unsigned int new_size = stk->size / 2;
+          int *new_array = malloc(new_size * sizeof(int));
+          if (new_array){
+              for (unsigned int i = 0; i < stk->top; i++){
+                  new_array[i] = stk->array[i];
+              }
+              free(stk->array);
+              stk->array = new_array;
+              stk->size = new_size;
+          }
+      }
+      return (Result){ .success = true, .value = popped };
+  }
+\end{minted}
+
+\section*{Calculator implementation}
+
+ - How tokens are read from stdin.
+ - How you distinguish numbers from operators.
+ - How each operator works (pop two values, compute, push result).
+ - How division by zero is handled.
+ - How the calculator behaves when the stack is in an invalid state.
+
+\section*{Experiments and testing}
+
+(MOST IMPORTANT)
+This is where you show that you “experimented with both versions of the stack.”
+Include:
+Example expressions you tested.
+Differences in behavior between static and dynamic stacks.
+What happens when the static stack overflows.
+What happens when you pop from an empty stack.
+The evaluation of the example expression:
+
+
+
+\end{document}

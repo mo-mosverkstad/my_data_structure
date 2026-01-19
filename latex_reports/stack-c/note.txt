@@ -78,3 +78,7 @@ If dynamic_stack.h changes -> both main.o and dynamic_stack.o need rebuild
 If main.c changes -> only main.o needs rebuild
 If dynamic_stack.c changes -> only dynamic_stack.o needs rebuild
 After updating .o files -> program will be relinked
+
+C/C++ compilation process: https://www.youtube.com/watch?v=ksJ9bdSX5Yo, https://www.geeksforgeeks.org/c/compiling-a-c-program-behind-the-scenes/
+Reverse engineering: https://www.youtube.com/watch?v=8vk5z9VAaBQ
+esp32, ...
