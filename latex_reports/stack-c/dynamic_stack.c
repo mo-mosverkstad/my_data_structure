@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define MIN_STACK_SIZE 4
+
 typedef struct dynamic_stack{
     unsigned int top;
     unsigned int size;
@@ -54,7 +56,21 @@ PopResult dynamic_stack_pop(dynamic_stack *stk) {
     if (stk->top == 0) {
         return (PopResult){ .success = false, .value = 0 };
     }
-    return (PopResult){ .success = true, .value = stk->array[--stk->top] };
+    
+    int popped = stk->array[--stk->top];
+    if (stk->top > 0 && stk->top < stk->size/4 && stk->size > MIN_STACK_SIZE){
+        unsigned int new_size = stk->size / 2;
+        int *new_array = malloc(new_size * sizeof(int));
+        if (new_array){
+            for (int i = 0; i < stk->top; i++){
+                new_array[i] = stk->array[i];
+            }
+            free(stk->array);
+            stk->array = new_array;
+            stk->size = new_size;
+        }
+    }
+    return (PopResult){ .success = true, .value = popped };
 }
 
 void dynamic_stack_print(dynamic_stack* stk){
@@ -70,7 +86,7 @@ void dynamic_stack_print(dynamic_stack* stk){
 
 
 int main() {
-    dynamic_stack *stk = dynamic_stack_new(4);
+    dynamic_stack *stk = dynamic_stack_new(MIN_STACK_SIZE);
     for (int i = 0; i < 105; i++){
         bool result = dynamic_stack_push(stk, i);
         if (!result){
@@ -80,7 +96,7 @@ int main() {
     }
 
     PopResult r;
-    for (int i = 0; i < 73; i++){
+    for (int i = 0; i < 82; i++){
         r = dynamic_stack_pop(stk);
         if (r.success){
             printf("stack_pop : %d\n", r.value);

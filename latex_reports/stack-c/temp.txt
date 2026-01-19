@@ -23,6 +23,7 @@ correct overflow handling (push returns false)
 correct underflow handling (PopResult.success = false)
 correct memory allocation and cleanup
 a working demonstration in main()
+
  
 2.2 Dynamic Stack
  - How memory is allocated and resized.
@@ -33,6 +34,7 @@ a working demonstration in main()
  
 You explain the growth strategy (double capacity). (push until full) -> grow by doubling
 You explain the shrink strategy (shrink when <25% full).  -> avoid growth-shrink oscillation, avoid bouncing between two capacities
+Shrink when the number of elements becomes strictly less than 25% of capacity since it prevents “thrashing” — the array repeatedly growing and shrinking around the same size.
 You explain the minimum capacity size (e.g., 4), since too frequent oscillation happens here -> prevents pathological tiny stacks
 You explain the reasoning: avoid oscillation, reduce realloc calls, maintain amortized O(1) push/pop.
 You show a small example of the stack growing and shrinking.
