@@ -82,3 +82,11 @@ After updating .o files -> program will be relinked
 C/C++ compilation process: https://www.youtube.com/watch?v=ksJ9bdSX5Yo, https://www.geeksforgeeks.org/c/compiling-a-c-program-behind-the-scenes/
 Reverse engineering: https://www.youtube.com/watch?v=8vk5z9VAaBQ
 esp32, ...
+
+Memory models:
+1. Malloc-free pairs:
+Whenever you allocate memory (malloc, calloc, new), you should write the corresponding deallocation (free, delete) at the same time, ideally in the same function or as a clearly paired constructor/destructor.
+Treat allocation and deallocation like matching parentheses: write both first, then fill in the logic between them.
+1. T = malloc() -...-> free(T)
+2. T -> (U = malloc() -...-> free(T)) -> U
+3. A(malloc(T)), B(malloc(T)) -> A() -...-> B()
