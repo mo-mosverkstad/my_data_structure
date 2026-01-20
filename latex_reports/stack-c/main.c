@@ -20,7 +20,7 @@ bool apply_op(dynamic_stack *stk, char op) {
 int main() {
     dynamic_stack *stk = dynamic_stack_new(16);
     printf("HP-35 pocket calculator\n");
-    int n = 10;
+    int n = 16;
     char *buffer = malloc(n);
     bool running = true;
     while(running) {

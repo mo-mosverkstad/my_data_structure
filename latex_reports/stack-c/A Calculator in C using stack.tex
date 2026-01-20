@@ -23,7 +23,7 @@
 
 \section*{Introduction}
 
-This report delve into the implementation of a calculator in C using reversed Polish notation with a stack. The purpose of the report is to learn practical application of a stack data structure as well as to compare differences between static and dynamic stack, by implementing a simple terminal-based calculator supporting reversed Polish notation.
+This report delves into the implementation of a calculator in C using reversed Polish notation with a stack. The purpose of the report is to learn practical application of a stack data structure as well as to compare differences between static and dynamic stack, by implementing a simple terminal-based calculator supporting reversed Polish notation.
 
 \section*{Different stack implementations}
 
@@ -93,53 +93,147 @@ Implementing a dynamic stack that allow growth and shrink is similar compared to
   } dynamic_stack;
 \end{minted}
 
-During push operation in a full array, the stack allocates another twice as large array and copies all the existing elements into the new one. This resizing approach ensures constant amortized time complexity $O(1)$ since each operation involves on average one write and one copy operation.
-
-Shrinking the array, on the other hand, is also important to free memory when the number of elements decreases. However, reducing array size whenever it falls below half its capacity can lead to array thrashing during repeatedly growth and shrinks around the same size. To prevent this, the array is only shrunk when the number of elements drops strictly below one fourth of the current capacity. Additionally, the array will shrink below certain minimum capacity size, in this case 4, in order to prevent frequent grow-shrink oscillation of tiny stacks.
+During push operation in a full array, the stack allocates another twice as large array and copies all the existing elements into the new one using the helper function \texttt{array\_resize\_copy}. This resizing approach ensures constant amortized time complexity $O(1)$ since each operation involves on average one write and one copy operation.
 
 \begin{minted}{c}
+  void array_resize_copy(int* old_array, unsigned int new_size){
+      int *new_array = malloc(new_size * sizeof(int));
+      if (!new_array){
+          return false;
+      }
+      for (unsigned int i = 0; i < stk->top; i++){
+          new_array[i] = old_array[i];
+      }
+  }
+  
   bool dynamic_stack_push(dynamic_stack *stk, int val) {
       if (stk->top >= stk->size) {
+          // grow the array by double its size
           unsigned int new_size = stk->size * 2;
-          int *new_array = malloc(new_size * sizeof(int));
-          if (!new_array){
-              return false;
-          }
-          for (unsigned int i = 0; i < stk->top; i++){
-              new_array[i] = stk->array[i];
-          }
+          array_resize_copy(stk->array, new_size)
           free(stk->array);
           stk->array = new_array;
           stk->size = new_size;
       }
-      stk->array[stk->top++] = val;
-      return true;
+      // push operation
   }
-  
+\end{minted}
+
+Shrinking the array, on the other hand, is also important to free memory when the number of elements decreases. However, reducing array size whenever it falls below half its capacity can lead to array thrashing during repeatedly growth and shrinks around the same size. To prevent this, the array is only shrunk when the number of elements drops strictly below one fourth of the current capacity. Additionally, the array will shrink below certain minimum capacity size, in this case 4, in order to prevent frequent grow-shrink oscillation of tiny stacks.
+
+\begin{minted}{c}
   Result dynamic_stack_pop(dynamic_stack *stk) {
-      if (stk->top == 0) {
-          return (Result){ .success = false, .value = 0 };
-      }
+      // Fail operation if stk->top is 0
       
-      int popped = stk->array[--stk->top];
-      if (stk->top > 0 && stk->top < stk->size/4 && stk->size > MIN_STACK_SIZE){
-          unsigned int new_size = stk->size / 2;
-          int *new_array = malloc(new_size * sizeof(int));
-          if (new_array){
-              for (unsigned int i = 0; i < stk->top; i++){
-                  new_array[i] = stk->array[i];
-              }
-              free(stk->array);
-              stk->array = new_array;
-              stk->size = new_size;
-          }
+      int popped = stk->array[--stk->top]; // store popped value
+      if (stk->top < stk->size/4 && stk->size > MIN_STACK_SIZE){
+          // Only when the number of elements is below one fourth of array capacity
+          // Array can be resized by halving the capacity
       }
-      return (Result){ .success = true, .value = popped };
+      // return popped value
   }
 \end{minted}
 
 \section*{Calculator implementation}
 
+With the stack implementations, building a reverse Polish notation terminal calculator becomes straightforward. Each token is passed into the CLI interface delimited by newlines and will be checked for number or operator. If the token is a number, it will be pushed onto the stack, otherwise if it's an operator it's used to pop 2 operands and push the calculated result if the given token is an operator. After processing the current token, the process is repeated over again, until an empty token is passed and the final calculated result will be produced. The structural code can be visualized as below (A dynamic stack is used in the example below):
+
+\begin{minted}{c}
+  #include <string.h>
+  
+  int main() {
+      // allocate a stack
+      dynamic_stack *stk = dynamic_stack_new(16);  
+      // initialize other heap resources
+      
+      // code main loop
+      bool running = true;
+      while(running) {
+          // Read a token from stdin
+          // Empty token, exit the loop (running = false)
+          // Operator token, apply operator
+          // Number token, push the number token into stack
+      }
+      // Pop the calculated result to stdout
+      
+      // deallocate the stack
+      dynamic_stack_delete(stk);
+      // deallocate other heap resources
+  }
+\end{minted}
+
+Terminal user input are read from standard input \texttt{stdin} and written into a char buffer \texttt{buffer} using function \texttt{fgets}. When enter key is pressed, a newline character is fed into standard input and \texttt{fgets} stop reading while storing the user input line including newline and null character to the buffer. 
+
+\begin{minted}{c}
+  // Initially allocate a buffer 
+  int n = 16;
+  char *buffer = malloc(n);
+  
+  // Print the prompt
+  printf(" > ");
+  // read a token from stdin to a buffer
+  fgets(buffer, n, stdin);
+  
+\end{minted}
+
+Numbers can be distinguished from operators using \texttt{strcmp} and \texttt{strchr} from \texttt{<string.h>} library. An empty line is detected using \texttt{strcmp(buffer, \"\\n\") == 0}. Single-character operators are detected using \texttt{strchr(\"+-*/\", buffer[0])} together with the condition \texttt{buffer[1] == '\\n'} to ensure that the token contains only the operator and a newline.
+
+\begin{minted}{c}
+  // Inside run loop
+  
+  if (strcmp(buffer, "\\n") == 0) {
+      Empty token, exit the loop (running = false)
+      running = false;
+  }
+  else if (strchr("+-*/", buffer[0]) && buffer[1] == '\\n') {
+      // Operator token, apply operator
+  }
+  else {
+      // Number token
+      int val = atoi(buffer);
+      dynamic_stack_push(stk, val);
+  }
+  
+\end{minted}
+
+When an operator is detected in a buffer line, two values should be popped out from the stack and calculated as well as pushing the value back to stack. The calculating operation is accomplished by \texttt{apply\_op} that takes the stack and an operator and produce the correct calculation. Operation success or failure is reported by the output boolean flag, \texttt{true} for successed operation, while \texttt{false} for failed operation. The operation can be failed if the stack state is invalid or division by zero attempt is detected.
+
+\begin{minted}{c}
+  bool apply_op(dynamic_stack *stk, char op) {
+      Result B = dynamic_stack_pop(stk);
+      Result A = dynamic_stack_pop(stk);
+      // Fail the operation if the stack is in invalid state
+      if (!A.success || !B.success) return false;
+      int result;
+      // detect the operator, operator can be either '+', '-', '*' or '/'
+      switch(op) {
+          case '+': result = A.value + B.value; break;
+          case '-': result = A.value - B.value; break;
+          case '*': result = A.value * B.value; break;
+          case '/': 
+              if (B.value == 0) {
+                  // Division by zero: treat as failed operation
+                  return false;
+              result = A.value / B.value;
+              break;
+          default: return false; // Fail the operation if the stack is in invalid state
+      }
+      dynamic_stack_push(stk, result);
+      return true;
+  }
+\end{minted}
+
+The caller function function recieves the status flag of the operation in the application loop and terminate the application program when invalid state error or division by zero attempt occurs. The main application loop is exited while heap resources are deallocated in the process. Using this approach, any invalid user input or invalid program state invariant can be caught and resolved by terminating the program.
+
+\begin{minted}{c}
+  if (!apply_op(stk, buffer[0])) {
+      printf("PROBLEM: STACK PROBLEM OR DIVISION BY ZERO\\n\\n");
+      running = false;
+  }
+\end{minted}
+
+
+Hints:
  - How tokens are read from stdin.
  - How you distinguish numbers from operators.
  - How each operator works (pop two values, compute, push result).
@@ -148,6 +242,7 @@ Shrinking the array, on the other hand, is also important to free memory when th
 
 \section*{Experiments and testing}
 
+Hints:
 (MOST IMPORTANT)
 This is where you show that you “experimented with both versions of the stack.”
 Include:

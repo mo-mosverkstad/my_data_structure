@@ -17,3 +17,10 @@ program
 # IDE / editor folders (optional)
 .vscode/
 .idea/
+
+*.aux
+*.log
+*.synctex(busy)
+*.data.minted
+_minted/
+*.pdf
