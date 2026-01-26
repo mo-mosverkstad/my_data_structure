@@ -3,6 +3,8 @@
 #include <time.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <float.h>
+
 
 int *unsorted_array_new(int n){
     int *array = (int*) malloc(n*sizeof(int));
@@ -47,35 +49,37 @@ unsigned int binary_search(int array[], unsigned int length, int key) {
             return index;
         }
         if (array[index] < key && index < last) {
-            // what is the first possible page?
-            first = ...... ;
+            first = index + 1;
             continue;
         }
         if (array[index] > key && index > first) {
-            // what is the last possible page?
-            last = ...... ;
+            last = index - 1;
             continue;
-    }
-    // Why do we land here? What should we do?
+        }
+        return UINT_MAX;
     }
 }
 
-/*
-bool recursive_binary_search(int[] array, int length, int key, int first, int last) {
-    // jump to the middle
-    int index = ....... ;
-    if (array[index] == key) {
-    // hmm what now?
-    }
-    if (array[index] < key && index < last) {
-    // call recursive but narrow the search
-    }
-    if (array[index] > key && index > first) {
-    // call recursive but narrow the search
-    }
-    // as before
+unsigned int recursive_binary_search(
+    int array[],
+    unsigned int length,
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    if (first > last)
+        return UINT_MAX;
+
+    unsigned int index = (first + last) / 2;
+
+    if (array[index] == key)
+        return index;
+
+    if (array[index] < key)
+        return recursive_binary_search(array, length, key, index + 1, last);
+
+    return recursive_binary_search(array, length, key, first, index - 1);
 }
-*/
 
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
@@ -122,7 +126,7 @@ void run_benchmark(double benchmark_function(int)) {
     int trials = 16;
     for (int i = 0; i < SIZE_LENGTH; i++) {
         int size = sizes[i];
-        double min = LONG_MAX;
+        double min = DBL_MAX;
         double max = 0;
         double total = 0;
         
@@ -149,7 +153,12 @@ void run_benchmark(double benchmark_function(int)) {
     }
 }
 
-int main(){
-    run_benchmark(benchmark_linear_search);
+int main() {
+    //run_benchmark(benchmark_linear_search);
+    int array[] = {1, 2, 5, 12, 17, 18, 21};
+
+    printf("Index of 17: %u\n", recursive_binary_search(array, 7, 17, 0, 6));
+    printf("Index of 15: %u\n", recursive_binary_search(array, 7, 15, 0, 6));
+
     return 0;
 }
