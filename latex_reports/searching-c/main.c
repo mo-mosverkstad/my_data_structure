@@ -137,8 +137,8 @@ double benchmark_recursive_binary_search(int n){
 
 
 void run_benchmark(double benchmark_function(int)) {
-    int SIZE_LENGTH = 8;
-    int sizes[] = {1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072};
+    int SIZE_LENGTH = 10;
+    int sizes[] = {1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 1000000, 64000000};
     int trials = 16;
     for (int i = 0; i < SIZE_LENGTH; i++) {
         int size = sizes[i];
@@ -170,7 +170,7 @@ void run_benchmark(double benchmark_function(int)) {
 }
 
 int main() {
-    run_benchmark(benchmark_recursive_binary_search);
+    run_benchmark(benchmark_binary_search);
     
     /*
     int array[] = {1, 2, 5, 12, 17, 18, 21};
