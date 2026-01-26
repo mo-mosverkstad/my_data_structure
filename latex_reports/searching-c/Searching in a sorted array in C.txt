@@ -1,0 +1,47 @@
+Searching in a sorted array in C
+
+Benchmark (brief as methodology):
+----- clean text -----
+
+For measuring benchmark execution time, the POSIX monotonic clock (\texttt{CLOCK\_MONOTONIC}) is used by using the helper function \texttt{nano\_seconds()}, which computes the elapsed time in nanoseconds using \texttt{long} integer, given the timestamp pointers \texttt{struct timespec*} \texttt{t\_start} and \texttt{t\_end}.
+
+\begin{minted}[breaklines]{C}
+    long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
+        return (t_stop->tv_nsec - t_start->tv_nsec) +
+               (t_stop->tv_sec - t_start->tv_sec) * 1000000000;
+    }
+
+    // In one of three array benchmark functions:
+    // code of allocating the memory for the array
+    clock_gettime(CLOCK_MONOTONIC, &t_start);
+    // code of one of three fundamental array operations
+    clock_gettime(CLOCK_MONOTONIC, &t_stop);
+    // code of cleaning up memory
+    return nano_seconds(&t_start, &t_stop);
+\end{minted}
+
+However, the precision is typically on the order of hundreds nanoseconds, which makes timing individual operations unreliable. To mitigate this, each algorithm is executed repeatedly in a batch (1024 iterations) to measure the total execution time of the batch. Execution time of each operation can be calculated by dividing the batch execution time by number of iterations.
+
+Due to hardware constraints, operating system scheduling, and background process, execution time can flunctuate between each operation execution. To minimize the uncertainty, each benchmark is repeated multiple times while reporting the minimum elapsed time.
+
+-----
+
+unsorted_search():
+Set up the rest of a benchmark and do some measurements for a growing number of elements in the array. Describe the relationship between the size of the array and the time it takes to do the search. How long time does it take to search through an array of a million elements? + Benchmark statistics diagrams, regression and time complexity
+sorted linear search: Now, if we know that the array is sorted we can of course do a quick optimization - we can stop the search once the next element in the array is larger then the key that we are looking for. Take a wild guess, how much better is this compared to our unsorted solution? + Benchmark statistics table+diagrams, regression and time complexity
+
+binary search:
+How long time does it take to search through an array of a million entries? It might not sound very much but if our program constantly does search operations it will add up. There are however smarter things we can do and this will allow us to handle much larger data sets in reasonable time.
+
+Re-run your benchmarks but now using the binary search. Report the execution time and describe a function that given the size of the array roughly describes the execution time. How long time does it take to search through an array of one million items? Without running an experiment - how long time do you estimate that it would take to search through an array of 64M items? Give it a try- how well did you estimate the execution time?  + Benchmark statistics table+diagrams, regression and time complexity
+
+Recursive programming:
+procedure calls are expensive, using the programming stack extensively
+How many recursive calls are done when searching an array or length
+1000? How many are done when seraching: 2000, 4000 ... a million? Is the number of recursive calls on the stack a problem? + evaluation
++ Benchmark statistics table+diagrams, regression and time complexity
+Comparing recursive vs. iterative performance in execution time + table + diagram
+Discussing overhead beyond stack depth
+
+Conclusion:
+Differences in behavior between unsorted search and sorted search, as well as recursive and iterative performance
