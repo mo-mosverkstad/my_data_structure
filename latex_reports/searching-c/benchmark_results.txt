@@ -1,3 +1,546 @@
+Linear search in unsorted array:
+Array size:   1024, ELAPSED TIME PER LOOP: 9.0e+02 ns
+Array size:   2048, ELAPSED TIME PER LOOP: 1.8e+03 ns
+Array size:   4096, ELAPSED TIME PER LOOP: 3.6e+03 ns
+Array size:   8192, ELAPSED TIME PER LOOP: 7.3e+03 ns
+Array size:  16384, ELAPSED TIME PER LOOP: 1.4e+04 ns
+Array size:  32768, ELAPSED TIME PER LOOP: 2.8e+04 ns
+Array size:  65536, ELAPSED TIME PER LOOP: 5.6e+04 ns
+Array size: 131072, ELAPSED TIME PER LOOP: 1.1e+05 ns
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|c}
+\textbf{Size of array} & \textbf{Elapsed time per loop (ns)}\\
+\hline
+  1024   &  $9.0\times 10^{2}$ \\
+  2048   &  $1.8\times 10^{3}$ \\
+  4096   &  $3.6\times 10^{3}$ \\
+  8192   &  $7.3\times 10^{3}$ \\
+  16384  &  $1.4\times 10^{4}$ \\
+  32768  &  $2.8\times 10^{4}$ \\
+  65536  &  $5.6\times 10^{4}$ \\
+  131072 &  $1.1\times 10^{5}$ \\
+\end{tabular}
+\caption{Linear search in an unsorted array: elapsed time per loop}
+\label{tab:linear-search}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size} 
+    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{ns} 
+    & $9.0\times10^{2}$ 
+    & $1.8\times10^{3}$ 
+    & $3.6\times10^{3}$ 
+    & $7.3\times10^{3}$ 
+    & $1.4\times10^{4}$ 
+    & $2.8\times10^{4}$ 
+    & $5.6\times10^{4}$ 
+    & $1.1\times10^{5}$ \\
+\end{tabular}
+\caption{Linear search in an unsorted array: elapsed time per loop (transposed)}
+\label{tab:linear-search-transposed}
+\end{center}
+\end{table}
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+      % Benchmark data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   9.0e2)
+        (2048,   1.8e3)
+        (4096,   3.6e3)
+        (8192,   7.3e3)
+        (16384,  1.4e4)
+        (32768,  2.8e4)
+        (65536,  5.6e4)
+        (131072, 1.1e5)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares linear fit: t(n) = a*n + b
+      % a ≈ 0.8399354126, b ≈ 284.5081332
+      \addplot[
+        red,
+        thick,
+        domain=1000:140000,
+        samples=200
+      ] {0.8399354126*x + 284.5081332};
+      \addlegendentry{$t(n) = 0.8399\,n + 284.5$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Linear search benchmark with least-squares linear fit}
+  \label{fig:linear-search}
+\end{figure}
+
+
+Linear search in sorted array
+Array size:   1024, ELAPSED TIME PER LOOP: 1.0e+03 ns
+Array size:   2048, ELAPSED TIME PER LOOP: 2.1e+03 ns
+Array size:   4096, ELAPSED TIME PER LOOP: 4.2e+03 ns
+Array size:   8192, ELAPSED TIME PER LOOP: 8.2e+03 ns
+Array size:  16384, ELAPSED TIME PER LOOP: 1.7e+04 ns
+Array size:  32768, ELAPSED TIME PER LOOP: 3.2e+04 ns
+Array size:  65536, ELAPSED TIME PER LOOP: 6.6e+04 ns
+Array size: 131072, ELAPSED TIME PER LOOP: 1.3e+05 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|c}
+\textbf{Size of array} & \textbf{Elapsed time per loop (ns)}\\
+\hline
+  1024   &  $1.0\times 10^{3}$ \\
+  2048   &  $2.1\times 10^{3}$ \\
+  4096   &  $4.2\times 10^{3}$ \\
+  8192   &  $8.2\times 10^{3}$ \\
+  16384  &  $1.7\times 10^{4}$ \\
+  32768  &  $3.2\times 10^{4}$ \\
+  65536  &  $6.6\times 10^{4}$ \\
+  131072 &  $1.3\times 10^{5}$ \\
+\end{tabular}
+\caption{Linear search in a sorted array: elapsed time per loop}
+\label{tab:linear-search-sorted}
+\end{center}
+\end{table}
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size} 
+    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{ns} 
+    & $1.0\times10^{3}$
+    & $2.1\times10^{3}$
+    & $4.2\times10^{3}$
+    & $8.2\times10^{3}$
+    & $1.7\times10^{4}$
+    & $3.2\times10^{4}$
+    & $6.6\times10^{4}$
+    & $1.3\times10^{5}$ \\
+\end{tabular}
+\caption{Linear search in a sorted array: elapsed time per loop (transposed)}
+\label{tab:linear-search-sorted-transposed}
+\end{center}
+\end{table}
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   1.0e3)
+        (2048,   2.1e3)
+        (4096,   4.2e3)
+        (8192,   8.2e3)
+        (16384,  1.7e4)
+        (32768,  3.2e4)
+        (65536,  6.6e4)
+        (131072, 1.3e5)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares linear fit: t(n) = a*n + b
+      % a ≈ 0.99274406098, b ≈ 159.33384973
+      \addplot[
+        red,
+        thick,
+        domain=1000:140000,
+        samples=200
+      ] {0.99274406098*x + 159.33384973};
+      \addlegendentry{$t(n) = 0.9927\,n + 159.3$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Linear search in a sorted array with least-squares linear fit}
+  \label{fig:linear-search-sorted}
+\end{figure}
+
+
+
+Binary search
+Array size:   1024, ELAPSED TIME PER LOOP: 54 ns
+Array size:   2048, ELAPSED TIME PER LOOP: 69 ns
+Array size:   4096, ELAPSED TIME PER LOOP: 73 ns
+Array size:   8192, ELAPSED TIME PER LOOP: 92 ns
+Array size:  16384, ELAPSED TIME PER LOOP: 97 ns
+Array size:  32768, ELAPSED TIME PER LOOP: 1.2e+02 ns
+Array size:  65536, ELAPSED TIME PER LOOP: 1.3e+02 ns
+Array size: 131072, ELAPSED TIME PER LOOP: 1.3e+02 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|c}
+\textbf{Size of array} & \textbf{Elapsed time per loop (ns)}\\
+\hline
+ 1024   &  54 \\
+ 2048   &  69 \\
+ 4096   &  73 \\
+ 8192   &  92 \\
+ 16384  &  97 \\
+ 32768  &  $1.2\times 10^{2}$ \\
+ 65536  &  $1.3\times 10^{2}$ \\
+ 131072 &  $1.3\times 10^{2}$ \\
+\end{tabular}
+\caption{Binary search: elapsed time per loop}
+\label{tab:binary-search}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{ns}
+    & 54
+    & 69
+    & 73
+    & 92
+    & 97
+    & $1.2\times10^{2}$
+    & $1.3\times10^{2}$
+    & $1.3\times10^{2}$ \\
+\end{tabular}
+\caption{Binary search: elapsed time per loop (transposed)}
+\label{tab:binary-search-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   54)
+        (2048,   69)
+        (4096,   73)
+        (8192,   92)
+        (16384,  97)
+        (32768,  120)
+        (65536,  130)
+        (131072, 130)
+      };
+      \addlegendentry{Measured}
+
+      % Fitted curve: t(n) = 10.535 log2(n) - 52.696
+      \addplot[
+        red,
+        thick,
+        domain=1000:140000,
+        samples=200
+      ] {10.535*(ln(x)/ln(2)) - 52.696};
+      \addlegendentry{$t(n)=10.535\,\log_2 n - 52.696$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Binary search benchmark with $\log_2 n$ least-squares fit}
+  \label{fig:binary-search}
+\end{figure}
+
+
+
+Recursive binary search
+Array size:   1024, ELAPSED TIME PER LOOP: 56 ns
+Array size:   2048, ELAPSED TIME PER LOOP: 76 ns
+Array size:   4096, ELAPSED TIME PER LOOP: 83 ns
+Array size:   8192, ELAPSED TIME PER LOOP: 94 ns
+Array size:  16384, ELAPSED TIME PER LOOP: 95 ns
+Array size:  32768, ELAPSED TIME PER LOOP: 1.1e+02 ns
+Array size:  65536, ELAPSED TIME PER LOOP: 1.3e+02 ns
+Array size: 131072, ELAPSED TIME PER LOOP: 1.4e+02 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|c}
+\textbf{Size of array} & \textbf{Elapsed time per loop (ns)}\\
+\hline
+ 1024   &  56 \\
+ 2048   &  76 \\
+ 4096   &  83 \\
+ 8192   &  94 \\
+ 16384  &  95 \\
+ 32768  &  $1.1\times 10^{2}$ \\
+ 65536  &  $1.3\times 10^{2}$ \\
+ 131072 &  $1.4\times 10^{2}$ \\
+\end{tabular}
+\caption{Recursive binary search: elapsed time per loop}
+\label{tab:recursive-binary-search}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{ns}
+    & 56
+    & 76
+    & 83
+    & 94
+    & 95
+    & $1.1\times10^{2}$
+    & $1.3\times10^{2}$
+    & $1.4\times10^{2}$ \\
+\end{tabular}
+\caption{Recursive binary search: elapsed time per loop (transposed)}
+\label{tab:recursive-binary-search-transposed}
+\end{center}
+\end{table}
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   56)
+        (2048,   76)
+        (4096,   83)
+        (8192,   94)
+        (16384,  95)
+        (32768,  110)
+        (65536,  130)
+        (131072, 140)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares fit: t(n) = a*log2(n) + b
+      % a ≈ 11.19047619048, b ≈ -53.07142857143
+      \addplot[
+        red,
+        thick,
+        domain=1000:140000,
+        samples=200
+      ] {11.19047619048*(ln(x)/ln(2)) - 53.07142857143};
+      \addlegendentry{$t(n)=11.1905\,\log_2 n - 53.0714$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Recursive binary search benchmark with $\log_2 n$ least-squares fit}
+  \label{fig:recursive-binary-search}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   56)
+        (2048,   76)
+        (4096,   83)
+        (8192,   94)
+        (16384,  95)
+        (32768,  110)
+        (65536,  130)
+        (131072, 140)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares fit: t(n) = a*log2(n) + b
+      % a ≈ 11.19047619048, b ≈ -53.07142857143
+      \addplot[
+        red,
+        thick,
+        domain=1000:140000,
+        samples=200
+      ] {11.19047619048*(ln(x)/ln(2)) - 53.07142857143};
+      \addlegendentry{$t(n)=11.1905\,\log_2 n - 53.0714$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Recursive binary search benchmark with $\log_2 n$ least-squares fit}
+  \label{fig:recursive-binary-search}
+\end{figure}
+
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13.5cm, height=7.5cm,
+      grid=major,
+      legend pos=north west,
+      legend cell align=left,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ---------------------------
+      % Linear search (unsorted)
+      % ---------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   9.0e2)
+        (2048,   1.8e3)
+        (4096,   3.6e3)
+        (8192,   7.3e3)
+        (16384,  1.4e4)
+        (32768,  2.8e4)
+        (65536,  5.6e4)
+        (131072, 1.1e5)
+      };
+      \addlegendentry{Linear (unsorted) — measured}
+
+      % Fit: t(n) = a*n + b  with a ≈ 0.8399354126, b ≈ 284.5081332
+      \addplot[
+        blue, densely dashed, very thick,
+        domain=1000:140000,
+        samples=200
+      ] {0.8399354126*x + 284.5081332};
+      \addlegendentry{Linear (unsorted) — fit}
+
+      % ---------------------------
+      % Linear search (sorted)
+      % ---------------------------
+      \addplot+[
+        mark=square*,
+        thick,
+        color=green!60!black
+      ] coordinates {
+        (1024,   1.0e3)
+        (2048,   2.1e3)
+        (4096,   4.2e3)
+        (8192,   8.2e3)
+        (16384,  1.7e4)
+        (32768,  3.2e4)
+        (65536,  6.6e4)
+        (131072, 1.3e5)
+      };
+      \addlegendentry{Linear (sorted) — measured}
+
+      % Fit: t(n) = a*n + b  with a ≈ 0.9927440610, b ≈ 159.3338497
+      \addplot[
+        green!60!black, densely dashed, very thick,
+        domain=1000:140000,
+        samples=200
+      ] {0.9927440610*x + 159.3338497};
+      \addlegendentry{Linear (sorted) — fit}
+
+      % ---------------------------
+      % Binary search
+      % ---------------------------
+      \addplot+[
+        mark=triangle*,
+        thick,
+        color=red
+      ] coordinates {
+        (1024,   54)
+        (2048,   69)
+        (4096,   73)
+        (8192,   92)
+        (16384,  97)
+        (32768,  120)
+        (65536,  130)
+        (131072, 130)
+      };
+      \addlegendentry{Binary — measured}
+
+      % Fit: t(n) = a*log2(n) + b  with a ≈ 11.7023809524, b ≈ -62.3571428571
+      \addplot[
+        red, densely dashed, very thick,
+        domain=1000:140000,
+        samples=200
+      ] {11.7023809524*(ln(x)/ln(2)) - 62.3571428571};
+      \addlegendentry{Binary — $\log_2 n$ fit}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Comparison of search algorithms: linear (unsorted), linear (sorted), and binary; with least-squares fits}
+  \label{fig:search-comparison}
+\end{figure}
+
+
 --------- Linear search in unsorted array: ---------
 --- BENCHMARK MEASUREMENTS (0, 1024 SIZE) ---
 ELAPSED TIME PER LOOP: 9.1e+02 ns
