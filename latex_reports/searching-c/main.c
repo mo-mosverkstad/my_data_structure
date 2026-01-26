@@ -81,15 +81,19 @@ unsigned int recursive_binary_search(
     return recursive_binary_search(array, length, key, first, index - 1);
 }
 
+unsigned int wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    return recursive_binary_search(array, length, key, 0, length-1);
+}
+
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
 }
 
-double benchmark_search(int n, unsigned int search(int[], unsigned int, int)) {
+double benchmark_search(int n, int *(*create)(int),unsigned int search(int[], unsigned int, int)) {
     srand(time(NULL));
     int loops = 1024;
 
-    int *array = unsorted_array_new(n);
+    int *array = create(n);
     int *keys  = malloc(loops * sizeof(int));
 
     for (int i = 0; i < loops; i++)
@@ -116,7 +120,19 @@ double benchmark_search(int n, unsigned int search(int[], unsigned int, int)) {
 }
 
 double benchmark_linear_search(int n){
-    return benchmark_search(n, unsorted_search);
+    return benchmark_search(n, unsorted_array_new, unsorted_search);
+}
+
+double benchmark_sorted_linear_search(int n){
+    return benchmark_search(n, sorted_array_new, unsorted_search);
+}
+
+double benchmark_binary_search(int n){
+    return benchmark_search(n, sorted_array_new, binary_search);
+}
+
+double benchmark_recursive_binary_search(int n){
+    return benchmark_search(n, sorted_array_new, wrapped_recursive_binary_search);
 }
 
 
@@ -140,7 +156,7 @@ void run_benchmark(double benchmark_function(int)) {
                 max = elapsed_time;
             }
             total += elapsed_time;
-            printf("ELAPSED TIME: TOTAL: %.2g ns, AVG PER LOOP: %.2g ns\n", elapsed_time, elapsed_time);
+            printf("ELAPSED TIME PER LOOP: %.2g ns\n", elapsed_time);
         }
         printf("\n");
     
@@ -154,11 +170,14 @@ void run_benchmark(double benchmark_function(int)) {
 }
 
 int main() {
-    //run_benchmark(benchmark_linear_search);
+    run_benchmark(benchmark_recursive_binary_search);
+    
+    /*
     int array[] = {1, 2, 5, 12, 17, 18, 21};
 
     printf("Index of 17: %u\n", recursive_binary_search(array, 7, 17, 0, 6));
     printf("Index of 15: %u\n", recursive_binary_search(array, 7, 15, 0, 6));
+    */
 
     return 0;
 }
