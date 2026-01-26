@@ -1,0 +1,397 @@
+Below I answer each question in the “Searching in a sorted array in C” assignment and give you ready‑to‑use snippets, methods to benchmark, how to present the results, and the key conclusions you are expected to draw. I reference the relevant parts of the PDF where appropriate. [searching-c | PDF]
+
+1) “A first try”: linear search in an unsorted array
+Task recap. Implement an unsorted linear search and benchmark it for growing n. Describe how time scales with n and estimate the time for n=106n=10^6n=106. [searching-c | PDF]
+Correctness & Complexity
+The unsorted search scans element‑by‑element until it finds the key or reaches the end. The expected runtime grows linearly with the array size:
+Tunsorted(n)  ≈  a⋅n(O(n))T_{\text{unsorted}}(n)\;\approx\; a\cdot n\quad\text{(}O(n)\text{)}Tunsorted​(n)≈a⋅n(O(n))
+where aaa is the average time per comparison on your machine (ns to tens of ns, depending on cache effects and compiler optimizations). [searching-c | PDF]
+Benchmarking method (robust & minimal)
+
+Generate an array of length nnn with pseudo‑random values.
+Generate keys both that hit (present) and miss (absent). Report min or median per trial to reduce OS jitter (as in earlier ID1021 assignments).
+Repeat for a geometric sequence of nnn (e.g., n=210,211,…n=2^{10},2^{11},\dotsn=210,211,…).
+Plot nnn on the x‑axis and time per search on the y‑axis; fit a line T(n)≈an+bT(n)\approx a n + bT(n)≈an+b.
+
+Conclusion you should report: time grows ~linearly; doubling nnn roughly doubles the time. For n=106n=10^6n=106, the wall‑time is ≈a⋅106\approx a\cdot 10^6≈a⋅106. (You will plug in your measured aaa.) [searching-c | PDF]
+
+2) “Quick optimization” for a sorted array: early exit linear search
+Task recap. With a sorted array you can stop when the current element exceeds the key; “how much better is this than unsorted?” Then benchmark with the provided generator sorted(n). [searching-c | PDF]
+Complexity & What to expect
+Even with early exit, the worst‑case (key at the end or absent but > last) is still linear O(n)O(n)O(n). But for random keys from the same distribution as the array, the average scan length is about half, so the slope improves by ≈2× vs unsorted. Thus:
+Tsorted‑linear(n)  ≈  a2⋅n(still O(n), lower constant)T_{\text{sorted‑linear}}(n)\;\approx\; \tfrac{a}{2}\cdot n\quad\text{(still }O(n)\text{, lower constant)}Tsorted‑linear​(n)≈2a​⋅n(still O(n), lower constant)
+Your plot should still be close to linear, but below the unsorted curve by a ~constant factor. Use the provided constructor with strictly increasing values (no duplicates). [searching-c | PDF]
+
+3) Binary search on a sorted array
+Task recap. Implement binary search, re‑run the benchmarks, describe a function that roughly captures the runtime, and estimate the time for 10610^6106 and (without first running) for 64M elements—then verify. [searching-c | PDF]
+Correctness & Complexity
+Binary search halves the remaining interval each step:
+Tbin(n)  ≈  b⋅⌈log⁡2n⌉+c(O(log⁡n))T_{\text{bin}}(n)\;\approx\; b\cdot \lceil \log_2 n\rceil + c \quad (O(\log n))Tbin​(n)≈b⋅⌈log2​n⌉+c(O(logn))
+So doubling nnn adds one comparison step on average—an almost flat curve compared to linear scan. Model fit your measurements to a line in log⁡2n\log_2 nlog2​n:
+T(n)  ≈  α⋅log⁡2n+βT(n)\;\approx\; \alpha\cdot \log_2 n + \betaT(n)≈α⋅log2​n+β
+Estimates from the model:
+
+For n=106n=10^6n=106: log⁡2(106)≈20\log_2(10^6)\approx 20log2​(106)≈20 steps → T≈20α+βT \approx 20\alpha+\betaT≈20α+β.
+For n=64M  (=226)n=64\text{M} \;(= 2^{26})n=64M(=226): roughly 26 steps, i.e., T≈26α+βT \approx 26\alpha+\betaT≈26α+β.
+You can report both model‑based estimates and the measured numbers to show how close they are. [searching-c | PDF]
+
+Implementation sketch (iterative)
+Use two indices first=0, last=length-1. While first<=last, check middle mid=(first+last)/2. If array[mid]==key return true; else narrow the range by moving first or last. This is exactly what the assignment skeleton points to. [searching-c | PDF]
+
+4) Recursive binary search
+Task recap. Reimplement binary search recursively over [first,last]. Then answer: “How many recursive calls for n=1000,2000,4000,…,106n=1000, 2000, 4000, \dots, 10^6n=1000,2000,4000,…,106? Is the recursion depth a problem?” [searching-c | PDF]
+Depth / Number of calls
+Each recursive call halves the interval, so the maximum recursion depth is:
+D(n)  =  ⌈log⁡2(n)⌉+O(1)D(n)\;=\;\left\lceil \log_2(n) \right\rceil + O(1)D(n)=⌈log2​(n)⌉+O(1)
+Thus:
+
+n=1000n=1000n=1000: D≈⌈9.97⌉≈10D\approx \lceil 9.97\rceil \approx 10D≈⌈9.97⌉≈10–11
+n=2000n=2000n=2000: ≈11 \approx 11≈11
+n=4000n=4000n=4000: ≈12 \approx 12≈12
+n=8000n=8000n=8000: ≈13 \approx 13≈13
+n=16,000n=16{,}000n=16,000: ≈14 \approx 14≈14
+n=32,000n=32{,}000n=32,000: ≈15 \approx 15≈15
+n=64,000n=64{,}000n=64,000: ≈16 \approx 16≈16
+n=106n=10^6n=106: ≈20 \approx 20≈20
+This depth is tiny relative to typical C call‑stack limits (thousands to millions of frames on most systems), so recursion is not a problem for binary search over practical array sizes. The assignment notes the general caveat that recursion uses the stack and very deep recursion can be costly—binary search simply doesn’t get deep. [searching-c | PDF]
+
+
+5) “How long time does it take…?”—what to report and how
+
+One million elements (linear): report your measured Tunsorted(106)T_{\text{unsorted}}(10^6)Tunsorted​(106) and Tsorted‑linear(106)T_{\text{sorted‑linear}}(10^6)Tsorted‑linear​(106). Expect both to be in the same order of magnitude, with the sorted‑linear about ~2× faster on average (but still linear). 
+One million elements (binary): report Tbin(106)T_{\text{bin}}(10^6)Tbin​(106) using your fitted α,β\alpha,\betaα,β. It should be orders of magnitude smaller than linear scan for large nnn. 
+64M elements (binary): estimate TTT via 26α+β26\alpha+\beta26α+β, then run and compare; they should be close. [searching-c | PDF]
+
+Presentation tips (as encouraged in ID1021):
+
+Plot time per search vs nnn for the three methods:
+
+Unsorted linear (slope aaa)
+Sorted linear early‑exit (slope ≈a/2\approx a/2≈a/2)
+Binary (fit line in log⁡2n\log_2 nlog2​n)
+
+
+Use two to three significant digits and friendly units (µs/ms) to highlight trends rather than raw nanosecond noise. [searching-c | PDF]
+
+
+6) “The cost of sorting”—is sorting worth it?
+The assignment foreshadows the next topic: when duplicates/searches are frequent, it can be worth sorting once (cost Θ(nlog⁡n)\Theta(n\log n)Θ(nlogn)) to enable many fast binary searches (Θ(log⁡n)\Theta(\log n)Θ(logn) each). The cross‑over depends on how many queries you do. The general rule you will confirm in the next assignment is: if you perform many searches on the same data, sorting first usually wins. [searching-c | PDF]
+
+7) Minimal, correct C sketches (iterative & recursive)
+
+Unsorted linear (from PDF prompt):
+Cbool unsorted_search(int array[], int length, int key) {  for (int i = 0; i < length; i++) {    if (array[i] == key) return true;  }  return false;}Show more lines
+ [searching-c | PDF]
+
+
+Sorted early‑exit linear:
+Cbool sorted_linear_search(int array[], int length, int key) {  for (int i = 0; i < length; i++) {    if (array[i] == key) return true;    if (array[i] > key)  return false; // early exit  }  return false;}Show more lines
+ [searching-c | PDF]
+
+
+Binary search (iterative):
+Cbool binary_search(int array[], int length, int key) {  int first = 0, last = length - 1;  while (first <= last) {    int mid = first + (last - first) / 2;    if (array[mid] == key) return true;    if (array[mid] < key)  first = mid + 1;    else                   last  = mid - 1;  }  return false;}Show more lines
+(Matches the algorithmic structure asked for in the skeleton.) [searching-c | PDF]
+
+
+Binary search (recursive):
+Cbool binary_search_rec(int array[], int first, int last, int key) {  if (first > last) return false;  int mid = first + (last - first) / 2;  if (array[mid] == key) return true;  if (array[mid] < key)  return binary_search_rec(array, mid + 1, last, key);  else                   return binary_search_rec(array, first, mid - 1, key);}Show more lines
+Call with binary_search_rec(a, 0, n-1, key); as suggested. [searching-c | PDF]
+
+
+Sorted array generator (from PDF):
+Cint *sorted(int n) {  int *array = (int*)malloc(n * sizeof(int));  int nxt = 0;  for (int i = 0; i < n; i++) {    nxt += rand() % 10 + 1;    array[i] = nxt;  }  return array;}Show more lines
+Use this to ensure strictly increasing values and no duplicates, as asked. [searching-c | PDF]
+
+
+8) What your final report should show (checklist)
+
+Method: how you generated data and keys; how many trials; which statistic you reported (min/median). [searching-c | PDF]
+Plots:
+
+Unsorted linear vs nnn → linear fit an+ban+ban+b
+Sorted linear vs nnn → linear fit with slope ≈a/2\approx a/2≈a/2
+Binary vs log⁡2n\log_2 nlog2​n → fit αlog⁡2n+β\alpha \log_2 n + \betaαlog2​n+β
+
+
+Numbers: measured times for 10610^6106 (all three methods) and predicted vs measured for 646464M (binary). [searching-c | PDF]
+Discussion: scaling differences; why binary is superior on large nnn; the trade‑off of sorting first; recursion depth analysis. [searching-c | PDF]
+
+
+TL;DR (what to conclude)
+
+Unsorted scan: O(n)O(n)O(n); time ≈ linear in nnn.
+Sorted scan (early exit): still O(n)O(n)O(n), but lower constant factor on average.
+Binary search: O(log⁡n)O(\log n)O(logn); for 10610^6106 it needs ~20 steps, for 64M ~26 steps—nearly flat growth.
+Recursive binary search depth is ⌈log⁡2n⌉\lceil \log_2 n \rceil⌈log2​n⌉, ≈20\approx 20≈20 at 10610^6106; not a problem for the call stack.
+All items above are exactly what this assignment expects you to implement, measure, and write up. [searching-c | PDF]
+
+If you want, I can also generate:
+
+a compact C benchmarking harness (with min/median reporting),
+pgfplots code for your figures, and
+a LaTeX write‑up section you can drop into your report.
+
+SourcesProvide your feedback on BizChatYou said:  How many recursive calls are done when searching an array or length 1000? How many are done when seraching: 2000, 4000 ... a million? Is the number of recursive calls on the stack a problem?Copilot said: CopilotWeb search is OFFHere is a clear, complete, and correct answer to the assignment questions about recursive binary search:
+
+✅ How many recursive calls are made when searching an array of size nnn?
+Binary search divides the search interval in half at every recursive call.
+Therefore, the number of recursive calls grows as:
+D(n)=⌈log⁡2(n)⌉+1D(n) = \lceil \log_2(n) \rceil + 1D(n)=⌈log2​(n)⌉+1
+
+The +1 accounts for the final call that determines the array contains no more possible search space (i.e., base case).
+This equation holds whether the key is present or absent—the recursion depth depends only on the interval halving.
+
+
+📌 Concrete values required by the assignment
+Compute:
+log⁡2(1000)≈9.97⇒10 or 11 calls\log_2(1000)\approx 9.97 \Rightarrow 10\text{ or }11\text{ calls}log2​(1000)≈9.97⇒10 or 11 calls
+log⁡2(2000)≈10.97⇒11 or 12 calls\log_2(2000)\approx 10.97 \Rightarrow 11\text{ or }12\text{ calls}log2​(2000)≈10.97⇒11 or 12 calls
+log⁡2(4000)≈11.97⇒12 or 13 calls\log_2(4000)\approx 11.97 \Rightarrow 12\text{ or }13\text{ calls}log2​(4000)≈11.97⇒12 or 13 calls
+log⁡2(1,000,000)=log⁡2(106)≈19.93⇒20 or 21 calls\log_2(1,000,000)=\log_2(10^6)\approx 19.93 \Rightarrow 20\text{ or }21\text{ calls}log2​(1,000,000)=log2​(106)≈19.93⇒20 or 21 calls
+
+📊 Final Table of Recursive Call Counts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Array length nnn⌈log⁡2(n)⌉\lceil \log_2(n) \rceil⌈log2​(n)⌉Approx. recursive calls1,0001010–112,0001111–124,0001212–138,0001313–1416,0001414–1532,0001515–1664,0001616–17128,0001717–18256,0001818–19512,0001919–201,000,0002020–21
+These values are exactly what the assignment expects you to compute and interpret.
+
+❓ Is the number of recursive calls a problem?
+No, not at all.
+Here’s why:
+✔ Very shallow recursion depth
+Even for extremely large arrays:
+
+n=1,000,000n = 1,000,000n=1,000,000 → about 20 calls
+n=1,000,000,000n = 1,000,000,000n=1,000,000,000 → about 30 calls
+n=264n = 2^{64}n=264 → only 64 calls
+
+This is tiny compared to the typical C stack capacity, which easily supports thousands to millions of nested calls.
+✔ Binary search always halts quickly
+Because the interval halves every step, the recursion depth grows logarithmically, not linearly.
+✔ The assignment warns about recursion stack limits
+The PDF hints that deep recursion can be dangerous in general (e.g., 100k nested calls), but emphasizes:
+
+For binary search, recursion depth is so small that it is never a practical problem.
+
+➡ Even the largest array sizes in this assignment produce fewer than 25 calls.
+
+🧠 Final Written Answer for Your LaTeX Report (copy‑paste)
+
+In recursive binary search, each call halves the remaining search interval.
+Therefore the recursion depth is ⌈log⁡2(n)⌉\lceil \log_2(n)\rceil⌈log2​(n)⌉.
+For the array sizes in the assignment:
+
+n=1000n=1000n=1000 gives roughly 10–11 recursive calls
+n=2000n=2000n=2000 gives about 11–12
+n=4000n=4000n=4000 gives about 12–13
+n=1,000,000n=1,000,000n=1,000,000 gives about 20–21
+
+Even for very large arrays the recursion depth remains extremely small, far below any realistic stack limit. Thus the number of recursive calls is not a problem for binary search, unlike deep recursion in other algorithms.
+
+
+If you want, I can also:
+
+Produce a pgfplots graph showing recursion depth vs array size
+Write the full LaTeX “Recursive search” section for your report
+Provide a clean C implementation of the recursive binary search
+
+Just tell me!
+Provide your feedback on BizChatYou said: What is the recursive limit when my using C++ or Java programming?Copilot said: CopilotWeb search is OFFHere is a clear, accurate, and practical explanation of recursion limits in C++ and Java.
+(There is no single universal number — it depends on OS, compiler/VM, and stack size — but you will get realistic ranges and explanations.)
+
+✅ 1. Recursion Limit in C++
+✔ C++ does not impose a language-level recursion limit
+Unlike Python (which has a fixed recursion limit, e.g. 1000), C++ leaves recursion depth entirely up to the operating system stack size.
+✔ Typical system stack sizes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PlatformDefault stack size (per process or thread)NotesLinux (glibc)~8 MB (default pthread stack)Most common valuemacOS~8 MBSimilar to LinuxWindows~1 MB (default for MSVC)Smaller default stack
+✔ What does this mean for recursion depth?
+The depth depends on stack frame size, which varies with:
+
+compiler optimization (-O2, -O3 shrink frames)
+local variables
+call convention (debug builds are bigger)
+
+✔ Practical recursion depth ranges in C++
+
+Optimized build (-O2):
+10,000 → 500,000 recursive calls possible
+Debug build:
+2,000 → 20,000 recursive calls common
+Deep recursion (>100k) risks stack overflow
+(especially Windows, which has smaller default stack)
+
+✔ Binary search recursion depth
+Binary search recursion depth is:
+log⁡2(n)\log_2(n)log2​(n)
+Even for n=109n = 10^9n=109:
+log⁡2(109)≈30\log_2(10^9) \approx 30log2​(109)≈30
+➡ 30 recursive calls — trivial for C++
+➡ Zero risk of stack overflow
+So in the context of your ID1021 assignment, recursion depth is absolutely safe.
+
+✅ 2. Recursion Limit in Java
+✔ Java also has no fixed recursion cap
+Java recursion depth is determined by JVM stack size per thread, controlled by option:
+Shelljava -Xss1m     # 1 MB stackjava -Xss8m     # 8 MB stackShow more lines
+✔ Default JVM stack sizes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+JVMDefault -XssTypical recursion depthHotSpot (OpenJDK) on Linux/macOS~1 MB~5,000 → 20,000HotSpot on Windows~1 MB~5,000 → 10,000Android ART/Dalvik~256 KB → 1 MB~1,000 → 8,000
+✔ Practical Java recursion depth ranges
+
+With -Xss1m:
+3,000 → 20,000 calls
+With -Xss8m:
+10,000 → 100,000+ calls
+Deep recursion in Java is riskier than C++ because:
+
+each Java stack frame is larger (metadata, GC maps, security frames)
+JVM stack is smaller by default
+
+
+
+✔ Binary search recursion in Java
+Again:
+log⁡2(n)\log_2(n)log2​(n)
+Even for:
+
+n=1,000,000n = 1{,}000{,}000n=1,000,000 → ~20 calls
+n=1,000,000,000n = 1{,}000{,}000{,}000n=1,000,000,000 → ~30 calls
+
+➡ No risk in Java either
+
+🧠 3. Summary
+C++ recursion limit
+
+No built-in limit
+Limited only by OS stack
+Typical safe depth:
+10k–500k (optimized)
+Binary search depth: ~20 → trivial
+
+Java recursion limit
+
+No language limit
+Limited by JVM stack (-Xss)
+Typical safe depth:
+3k–20k
+Binary search depth: ~20 → trivial
+
+For your assignment
+Binary search recursion depth is so small that:
+
+C++: absolutely no issue
+Java: absolutely no issue
+The recursive version is as safe as the iterative one
