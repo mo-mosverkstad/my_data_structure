@@ -262,7 +262,7 @@ On the other hand, a binary search starts in the middle of an array. If the elem
 
 Benchmark results show that for 1M data ...
 
-Measured elapsed time using benchmark shows that an array with 1 million elements takes roughly $2.4\times10^2$ ns. Following the same trend, doubling each element adds on 12 ns to elapsed time, which means that for 64 million elements, the elapsed time is roughly $a\cdot log_2(64\cdot 10^6) = a\cdot log_2(10^6)\cdot 6 = 2.4\cdot10^2\cdot 6 = 1.44\cdot 10^3$ ns. The actual measurement for 64 million elements is $1.1\cdot10^3$ ns, which roughly matches the growth trend.
+Measured elapsed time using benchmark shows that an array with 1 million elements takes roughly $2.4\times10^2$ ns. Following the same trend, doubling each element adds on 12 ns to elapsed time, which means that for 64 million elements, the elapsed time is roughly $a\cdot log_2(64\cdot 10^6) = a\cdot log_2(10^6)\cdot 6 = 2.4\cdot10^2\cdot 6 = 1.44\cdot 10^3$ ns. The actual measurement for 64 million elements is $1.1\cdot10^3$ ns, which roughly matches the growth trend. The difference arises because the theoretical model treats comparasions with uniform estimated time while real execution time of each operation may flunctuate.
 
 \begin{figure}[h]
   \centering
@@ -322,7 +322,7 @@ Comparing recursive vs. iterative performance in execution time + table + diagra
 Discussing overhead beyond stack depth
 \fi
 
-The binary search algorithm can also be implemented using recursion. Every iteration in the while loop is swapped to a recursive function call in recursive implementation, which narrows the search interval until a key is found.
+The binary search algorithm can also be implemented using recursion. The only difference between recursive implementation and non-recursive one is that every iteration in the while loop is swapped to a recursive function call in recursive implementation, which narrows the search interval until a key is found.
 
 \begin{minted}{c}
   unsigned int recursive_binary_search(
@@ -348,7 +348,8 @@ The binary search algorithm can also be implemented using recursion. Every itera
   
 \end{minted}
 
-The benchmark shows the same logarithmic time growth, since the elapsed time is similar. 
+The benchmark shows the same logarithmic time growth, since the elapsed time is similar. Since recursive binary search add up recursive calls, the elapsed time and memory consumption may be slightly higher than non-recursive one. In recursive binary search, the recursive calls are $\left \lfloor{\log_2(n)}\right \rfloor + 1 $ for array size $n$. The table shows amount of recursive calls.
+
 
 \begin{table}[h]
 \begin{center}
@@ -371,12 +372,73 @@ The benchmark shows the same logarithmic time growth, since the elapsed time is 
 \end{center}
 \end{table}
 
+Size	Calls
+1024	11
+2048	12
+4096	13
+…	…
+1,000,000	20
+
+The stack depth in binary search doesn't cause stack overflow, since even for 64M elements. Instead the recursive depth is only $\left \lfloor{\log_2(64\cdot 10^6)}\right \rfloor + 1 = 27$ stacks, which is trivial for most system.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{ns}
+    & 56
+    & 76
+    & 83
+    & 94
+    & 95
+    & $1.1\times10^{2}$
+    & $1.3\times10^{2}$
+    & $1.4\times10^{2}$ \\
+\end{tabular}
+\caption{Recursive binary search: elapsed time per loop (transposed)}
+\label{tab:recursive-binary-search-transposed}
+\end{center}
+\end{table}
+
+The recursive version is slower by a small constant factor due to recursive function call overhead, even though both share the same $O(\log(n))$ complexity.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size} 
+    & 1000 & 2000 & 4000 & 8000 & 16000 & 32000 & 64000 & 10^6 \\
+\hline
+\textbf{Recursive calls} 
+    & 10--11 
+    & 11 
+    & 12 
+    & 13 
+    & 14 
+    & 15 
+    & 16 
+    & 20 \\
+\end{tabular}
+\caption{Approximate recursion depth $\lfloor \log_2(n) \rfloor + 1$ for array size $n$}
+\label{tab:recursive-depth}
+\end{center}
+\end{table}
+
 
 
 \section*{Conclusion}
 
 \iffalse
-Differences in behavior between unsorted search and sorted search, as well as recursive and iterative performance
+Differences in time complexity function between unsorted search and sorted search, as well as recursive and iterative performance
 \fi
+
+The conclusion shows that sorted binary search is usually orders of magnitudes faster than linear search.
+
+Both unsorted and sorted linear search are $O(n)$ time complexity which has similar growth trend with mostly similar execution time, which can be confirmed using linear regression. To some extent, sorted linear search could improve benchmark performance if the key is relatively small, since array iteration can be exited early, but the optimization is tiny and still take time complexity in other places. 
+
+Binary search algorithm overall outperforms both unsorted linear search and early-exit linear search in sorted arrays in terms of execution time. The main reason is that only a fraction of array element is compared during searching process. During the program, half of array is eliminated in each iteration, instead of iterating through each element. In this case, the algorithm takes only a fraction of execution time compared to linear search, which is roughly logarithmic amount of execution time of linear search $O(log(n)), considering that binary search is usually roughly thousand times faster than both linear search versions.
+
+Both iterative and recursive binary search has identical $O(log(n))$ complexity, but recursive version faces additional performance overhead due to function call overhead and additional stack usage. However, practically it's not a concern unless running in performance-heavy tight loops where tiny overhead adds up.
 
 \end{document}
