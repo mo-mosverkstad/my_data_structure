@@ -1,0 +1,979 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+#include <limits.h>
+#include <float.h>
+
+
+int *unsorted_array_new(int n){
+    int *array = (int*) malloc(n*sizeof(int));
+    for (int i = 0; i < n; i++)
+        array[i] = rand()%(n*2);
+    return array;
+}
+
+int *sorted_array_new(int n) {
+    int *array = (int*)malloc(n*sizeof(int));
+    int nxt = 0;
+    for (int i = 0; i < n ; i++) {
+        nxt += rand()%10 + 1;
+        array[i] = nxt;
+    }
+    return array;
+}
+
+void array_destroy(int *array){
+    if (array != NULL){
+        free(array);
+    }
+}
+
+unsigned int unsorted_search(int array[], unsigned int length, int key) {
+    for (int index = 0; index < length; index++) {
+        if (array[index] == key) {
+            return index;
+        }
+    }
+    return UINT_MAX;
+}
+
+
+unsigned int binary_search(int array[], unsigned int length, int key) {
+    int first = 0;
+    int last = length-1;
+    while (true) {
+        // jump to the middle
+        int index = (first + last)/2;
+        if (array[index] == key) {
+            return index;
+        }
+        if (array[index] < key && index < last) {
+            first = index + 1;
+            continue;
+        }
+        if (array[index] > key && index > first) {
+            last = index - 1;
+            continue;
+        }
+        return UINT_MAX;
+    }
+}
+
+unsigned int recursive_binary_search(
+    int array[],
+    unsigned int length,
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    if (first > last)
+        return UINT_MAX;
+
+    unsigned int index = (first + last) / 2;
+
+    if (array[index] == key)
+        return index;
+
+    if (array[index] < key)
+        return recursive_binary_search(array, length, key, index + 1, last);
+
+    return recursive_binary_search(array, length, key, first, index - 1);
+}
+
+unsigned int wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    return recursive_binary_search(array, length, key, 0, length-1);
+}
+
+long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
+    return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
+}
+
+double benchmark_search(int n, int *(*create)(int),unsigned int search(int[], unsigned int, int)) {
+    srand(time(NULL));
+    int loops = 1024;
+
+    int *array = create(n);
+    int *keys  = malloc(loops * sizeof(int));
+
+    for (int i = 0; i < loops; i++)
+        keys[i] = array[rand() % n];
+
+    struct timespec start, stop;
+    volatile int hits = 0;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    for (int i = 0; i < loops; i++) {
+        int result = search(array, n, keys[i]);
+        if (result != UINT_MAX){
+            hits++;
+        }
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &stop);
+
+    free(keys);
+    array_destroy(array);
+
+    return (double) nano_seconds(&start, &stop)/loops;
+}
+
+double benchmark_linear_search(int n){
+    return benchmark_search(n, unsorted_array_new, unsorted_search);
+}
+
+double benchmark_sorted_linear_search(int n){
+    return benchmark_search(n, sorted_array_new, unsorted_search);
+}
+
+double benchmark_binary_search(int n){
+    return benchmark_search(n, sorted_array_new, binary_search);
+}
+
+double benchmark_recursive_binary_search(int n){
+    return benchmark_search(n, sorted_array_new, wrapped_recursive_binary_search);
+}
+
+
+void run_benchmark(double benchmark_function(int)) {
+    int SIZE_LENGTH = 7;
+    int sizes[] = {1024, 2048, 4096, 8192, 16384, 1048576, 67108864};
+    int trials = 16;
+    for (int i = 0; i < SIZE_LENGTH; i++) {
+        int size = sizes[i];
+        double min = DBL_MAX;
+        double max = 0;
+        double total = 0;
+        
+        printf("--- BENCHMARK MEASUREMENTS (%d, %d SIZE) ---\n", i, size);
+        for (int j = 0; j < trials; j++) {
+            double elapsed_time = benchmark_function(size);
+            if (elapsed_time < min){
+                min = elapsed_time;
+            }
+            if (elapsed_time > max){
+                max = elapsed_time;
+            }
+            total += elapsed_time;
+            printf("ELAPSED TIME PER LOOP: %.2g ns\n", elapsed_time);
+        }
+        printf("\n");
+    
+        printf("--- BENCHMARK SUMMARY (%d) ---\n", i);
+        printf("MAX TIME: %.2g ns/operation \n", max);
+        printf("MIN TIME: %.2g ns/operation \n", min);
+        printf("AVG TIME: %.2g ns/operation \n", total/trials);
+        printf("TOT TIME: %.2g ns/operation \n", total);
+        printf("\n\n");
+    }
+}
+
+int main() {
+    run_benchmark(benchmark_binary_search);
+    
+    /*
+    int array[] = {1, 2, 5, 12, 17, 18, 21};
+
+    printf("Index of 17: %u\n", recursive_binary_search(array, 7, 17, 0, 6));
+    printf("Index of 15: %u\n", recursive_binary_search(array, 7, 15, 0, 6));
+    */
+
+    return 0;
+}
+
+
+
+5 High Severity:
+================
+High-01: Missing null check after malloc issue in main.c at [11, 10]
+The Missing null check after malloc issue at line 10 occurs because malloc() can fail and return NULL when there's insufficient memory available.
+
+The Problem:
+
+int *array = (int*) malloc(n*sizeof(int));
+for (int i = 0; i < n; i++)
+    array[i] = rand()%(n*2);  // ← CRASH if array is NULL
+
+If malloc() fails and returns NULL, the code immediately tries to access array[i], causing a segmentation fault (program crash).
+
+Why This Happens:
+- System runs out of memory
+- Requesting too large an allocation
+- Memory fragmentation
+
+The Fix:
+
+int *unsorted_array_new(int n){
+    int *array = (int*) malloc(n*sizeof(int));
+    if (array == NULL) {
+        return NULL;  // Signal failure to caller
+    }
+    for (int i = 0; i < n; i++)
+        array[i] = rand()%(n*2);
+    return array;
+}
+Then callers must also check:
+
+int *array = create(n);
+if (array == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    return -1;  // or handle error appropriately
+}
+
+This defensive programming prevents crashes and allows graceful error handling when memory allocation fails.
+
+--------
+High-02: Missing null check after malloc issue in main.c at [18, 17]
+Missing null check after malloc - Line 18
+The Problem:
+
+At line 18 in sorted_array_new(), malloc is called to allocate memory:
+
+int *array = (int*)malloc(n*sizeof(int));
+
+If malloc fails (due to insufficient memory), it returns NULL. However, the code immediately proceeds to use array without checking if it's NULL:
+
+for (int i = 0; i < n ; i++) {
+    nxt += rand()%10 + 1;
+    array[i] = nxt;  // ❌ CRASH if array is NULL
+}
+
+Why This is Dangerous:
+- Segmentation Fault: Writing to array[i] when array is NULL causes undefined behavior and typically crashes the program
+- Silent Corruption: In rare cases, it might write to invalid memory locations, corrupting data
+- Hard to Debug: The crash happens after malloc, making it harder to trace back to the allocation failure
+
+The Fix:
+Add a null check immediately after malloc:
+
+int *sorted_array_new(int n) {
+    int *array = (int*)malloc(n*sizeof(int));
+    if (array == NULL) {
+        return NULL;  // Signal failure to caller
+    }
+    int nxt = 0;
+    for (int i = 0; i < n ; i++) {
+        nxt += rand()%10 + 1;
+        array[i] = nxt;
+    }
+    return array;
+}
+
+Note: The same issue exists at line 11 in unsorted_array_new() and line 99 in benchmark_search(). All malloc calls should be checked for NULL returns.
+
+--------
+High-03: Potential integer overflow in binary search issue in main.c at [42, 60]
+Potential Integer Overflow in Binary Search
+The Problem:
+At line 46, the code calculates the middle index using:
+
+int index = (first + last)/2;
+
+This is a classic binary search bug that can cause integer overflow when first and last are large values.
+
+Why It Happens:
+When first and last are both large integers (e.g., near INT_MAX), adding them together can exceed the maximum value an int can hold, causing signed integer overflow, which is undefined behavior in C.
+
+Example:
+
+int first = 2000000000;  // Close to INT_MAX (2,147,483,647)
+int last  = 2000000000;
+int index = (first + last)/2;  // Overflow! Result is negative or unpredictable
+
+The sum 4,000,000,000 exceeds INT_MAX, causing overflow and producing incorrect results.
+
+The Fix:
+Use this overflow-safe formula:
+
+int index = first + (last - first)/2;
+
+Why This Works:
+- (last - first) gives the range size (always positive, no overflow)
+- Dividing by 2 gives half the range
+- Adding to first gives the correct middle point
+- No intermediate overflow occurs
+
+Corrected Code:
+
+unsigned int binary_search(int array[], unsigned int length, int key) {
+    int first = 0;
+    int last = length-1;
+    while (true) {
+        int index = first + (last - first)/2;  // Fixed!
+        if (array[index] == key) {
+            return index;
+        }
+        if (array[index] < key && index < last) {
+            first = index + 1;
+            continue;
+        }
+        if (array[index] > key && index > first) {
+            last = index - 1;
+            continue;
+        }
+        return UINT_MAX;
+    }
+}
+
+This same issue exists in the recursive version at line 70 and should be fixed there as well.
+
+--------
+High-04: Potential integer overflow in recursive binary search issue in main.c at [71, 70]
+Potential Integer Overflow in Recursive Binary Search
+The Problem:
+
+At line 70, the recursive binary search calculates the middle index using:
+
+unsigned int index = (first + last) / 2;
+
+This has the same integer overflow vulnerability as the iterative version, even though it uses unsigned int.
+
+Why It Happens:
+- When first and last are both large unsigned int values (e.g., near UINT_MAX which is 4,294,967,295), adding them together can exceed the maximum value an unsigned int can hold, causing unsigned integer overflow.
+- While unsigned overflow is defined behavior in C (it wraps around), it still produces incorrect results for the midpoint calculation.
+
+Example:
+
+unsigned int first = 3000000000;
+unsigned int last  = 3000000000;
+unsigned int index = (first + last) / 2;  // Overflow! Wraps to small value
+// Expected: 3000000000
+// Actual: (6000000000 % 4294967296) / 2 = 852516352 / 2 = 426258176 ❌
+
+The Fix:
+Use the overflow-safe formula:
+
+unsigned int index = first + (last - first) / 2;
+
+Corrected Code:
+
+unsigned int recursive_binary_search(
+    int array[],
+    unsigned int length,
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    if (first > last)
+        return UINT_MAX;
+
+    unsigned int index = first + (last - first) / 2;  // Fixed!
+
+    if (array[index] == key)
+        return index;
+
+    if (array[index] < key)
+        return recursive_binary_search(array, length, key, index + 1, last);
+
+    return recursive_binary_search(array, length, key, first, index - 1);
+}
+
+
+Why This Matters:
+Your benchmark tests arrays up to size 67108864 (67 million elements). While this specific size won't trigger overflow, the bug makes the code unreliable and incorrect for larger datasets, and it's a well-known security vulnerability in production code.
+
+--------
+High-05: Missing null check after malloc issue in main.c at [100, 99]
+Missing Null Check After malloc
+The Problem:
+
+At line 99, the code allocates memory for the keys array:
+
+int *keys = malloc(loops * sizeof(int));
+
+Then immediately at line 101, it uses this pointer without checking if malloc succeeded:
+
+for (int i = 0; i < loops; i++)
+    keys[i] = array[rand() % n];  // ❌ Crash if keys is NULL!
+
+Why It's Dangerous:
+- malloc() can fail and return NULL when:
+- System is out of memory
+- Requested allocation is too large
+- Memory fragmentation prevents allocation
+
+If malloc() returns NULL and you dereference it (keys[i]), you get:
+- Segmentation fault (program crash)
+- Undefined behavior
+- Potential security vulnerabilities
+
+The Impact:
+In your benchmark, you're allocating 1024 * sizeof(int) = 4KB, which is small. But if the system is low on memory or the program runs in a constrained environment, this can fail.
+Additionally, the array pointer from create(n) is also not checked, which could be NULL if allocation failed in unsorted_array_new() or sorted_array_new().
+
+The Fix:
+Add null checks and handle the error gracefully:
+
+double benchmark_search(int n, int *(*create)(int), unsigned int search(int[], unsigned int, int)) {
+    srand(time(NULL));
+    int loops = 1024;
+
+    int *array = create(n);
+    if (array == NULL) {
+        fprintf(stderr, "Failed to allocate array\n");
+        return -1.0;  // Return error indicator
+    }
+    
+    int *keys = malloc(loops * sizeof(int));
+    if (keys == NULL) {
+        fprintf(stderr, "Failed to allocate keys array\n");
+        array_destroy(array);  // Clean up already allocated memory
+        return -1.0;
+    }
+
+    for (int i = 0; i < loops; i++)
+        keys[i] = array[rand() % n];
+
+    // ... rest of the function
+}
+
+Best Practice:
+Always check malloc return values in production code. This is a fundamental rule of defensive programming in C.
+
+
+5 Medium Severity: Type mismatches, poor randomization, potential division by zero
+==================
+Medium-01: Incorrect loop variable type issue in main.c at [33, 32]
+Incorrect Loop Variable Type
+The Problem:
+
+At line 32, the function signature declares length as unsigned int:
+
+unsigned int unsorted_search(int array[], unsigned int length, int key) {
+    for (int index = 0; index < length; index++) {  // ❌ Type mismatch
+
+But the loop variable index is declared as int (signed), creating a signed/unsigned comparison.
+
+Why It's a Problem:
+1. Compiler Warnings: Modern compilers will warn about comparing signed and unsigned types:
+warning: comparison between signed and unsigned integer expressions
+
+2. Potential Logic Errors: If length is very large (e.g., > INT_MAX = 2,147,483,647), the comparison index < length can behave unexpectedly because:
+- int max value: 2,147,483,647
+- unsigned int max value: 4,294,967,295
+3. Type Inconsistency: The function returns unsigned int and uses unsigned int length, so the loop variable should match.
+
+Example of the Issue:
+
+unsigned int length = 3000000000;  // Valid unsigned int
+int index = 0;                      // Signed int
+
+// When index reaches INT_MAX (2,147,483,647), incrementing it causes overflow
+// index becomes negative, but length is still 3,000,000,000
+// Comparison becomes: -2147483648 < 3000000000 (comparing signed to unsigned)
+
+The Fix:
+
+Change int index to unsigned int index to match the parameter type:
+
+unsigned int unsorted_search(int array[], unsigned int length, int key) {
+    for (unsigned int index = 0; index < length; index++) {  // ✅ Fixed
+        if (array[index] == key) {
+            return index;
+        }
+    }
+    return UINT_MAX;
+}
+
+Why This Matters:
+- Type Safety: Matching types prevents subtle bugs and compiler warnings
+- Consistency: The function signature, loop variable, and return type should all use the same type
+- Best Practice: When working with array indices and lengths, use size_t or unsigned int consistently
+
+Additional Note:
+The same issue exists in other functions like unsorted_array_new() and sorted_array_new() where int i is used with int n, but those are less critical since n is signed.
+
+----------
+Medium-02: Explain srand() called inside benchmark function issue in main.c at [96, 95]
+srand() Called Inside Benchmark Function
+The Problem:
+
+At line 95, srand(time(NULL)) is called inside benchmark_search():
+
+double benchmark_search(int n, int *(*create)(int), unsigned int search(int[], unsigned int, int)) {
+    srand(time(NULL));  // ❌ Called every time benchmark_search runs
+    // ...
+}
+
+This function is called multiple times during benchmarking (7 sizes × 16 trials = 112 times in your code).
+
+Why It's a Problem:
+- Poor Randomization: time(NULL) returns the current time in seconds. If benchmark_search() is called multiple times within the same second, srand() will be initialized with the same seed, producing identical random sequences.
+- Non-Random Results: Your benchmark runs 16 trials per size. If these trials complete within 1 second (which they likely do), all 16 trials will use the exact same random data, making the benchmark less representative.
+
+Example:
+
+// Trial 1 at time=1234567890
+srand(1234567890);
+rand(); // Returns: 12345
+
+// Trial 2 at time=1234567890 (same second)
+srand(1234567890);  // Same seed!
+rand(); // Returns: 12345 (identical sequence)
+
+Impact on Your Benchmark:
+Looking at your run_benchmark() function:
+
+for (int j = 0; j < trials; j++) {
+    double elapsed_time = benchmark_function(size);  // Calls benchmark_search
+    // All 16 trials likely use identical random data!
+}
+
+This means you're not testing with varied data—you're testing the same data 16 times, which reduces the statistical validity of your benchmark.
+
+The Fix:
+Move srand(time(NULL)) to main() and call it only once at program startup:
+
+int main() {
+    srand(time(NULL));  // ✅ Initialize once at program start
+    
+    run_benchmark(benchmark_binary_search);
+    
+    return 0;
+}
+
+And remove it from benchmark_search():
+
+double benchmark_search(int n, int *(*create)(int), unsigned int search(int[], unsigned int, int)) {
+    // srand(time(NULL));  ❌ Remove this line
+    int loops = 1024;
+    // ...
+}
+
+Why This Works:
+- srand() initializes the random number generator once
+- Subsequent rand() calls produce a proper pseudo-random sequence
+- Each benchmark trial gets different random data
+- Better statistical distribution in your benchmark results
+
+Best Practice:
+Always call srand() exactly once at the beginning of your program, never inside functions that are called repeatedly.
+
+---------
+Medium-03: Potential modulo by zero issue in main.c at [104, 103]
+Potential Modulo by Zero
+The Problem:
+At line 103, the code performs a modulo operation with n:
+
+for (int i = 0; i < loops; i++)
+    keys[i] = array[rand() % n];  // ❌ If n is 0, this is undefined behavior
+
+If n is 0, then rand() % n causes division by zero, which is undefined behavior in C.
+
+Why It's Dangerous:
+1. Undefined Behavior: Modulo by zero is not defined in C and can cause:
+- Program crash
+- Unpredictable results
+- Security vulnerabilities
+2. No Validation: The function benchmark_search() doesn't validate that n > 0 before using it.
+3. Cascading Issues: Even if n is 0, the code would also:
+- Create an empty array (or NULL if malloc fails)
+- Attempt to access array[rand() % 0] which is invalid
+
+When Could This Happen?
+While your current code always passes valid sizes (1024, 2048, etc.), the function is not defensive. If someone calls:
+
+benchmark_search(0, sorted_array_new, binary_search);  // Crash!
+
+The Same Issue Exists Elsewhere:
+This problem also appears in:
+
+Line 12: array[i] = rand()%(n*2); in unsorted_array_new()
+
+Line 20: nxt += rand()%10 + 1; (this one is safe, hardcoded 10)
+
+The Fix:
+Add validation at the beginning of benchmark_search():
+
+double benchmark_search(int n, int *(*create)(int), unsigned int search(int[], unsigned int, int)) {
+    if (n <= 0) {
+        fprintf(stderr, "Error: n must be positive\n");
+        return -1.0;
+    }
+    
+    srand(time(NULL));
+    int loops = 1024;
+
+    int *array = create(n);
+    int *keys = malloc(loops * sizeof(int));
+
+    for (int i = 0; i < loops; i++)
+        keys[i] = array[rand() % n];  // ✅ Now safe
+    
+    // ... rest of function
+}
+
+Also Fix in Array Creation Functions:
+
+int *unsorted_array_new(int n){
+    if (n <= 0) return NULL;  // ✅ Validate input
+    
+    int *array = (int*) malloc(n*sizeof(int));
+    if (array == NULL) return NULL;
+    
+    for (int i = 0; i < n; i++)
+        array[i] = rand()%(n*2);  // ✅ Now safe
+    return array;
+}
+
+Best Practice:
+Always validate function inputs, especially when they're used in:
+- Division or modulo operations
+- Array indexing
+- Memory allocation sizes
+
+This is defensive programming that prevents crashes and undefined behavior.
+
+
+Medium-04: Potential Unsigned Integer Underflow in binary_search
+The Problem:
+
+At line 58, the function calculates last = length-1:
+
+bool binary_search(int array[], unsigned int length, int key) {
+    int first = 0;
+    int last = length-1;  // ❌ Underflow when length is 0
+
+When length is 0 (an empty array), the expression length-1 causes unsigned integer underflow.
+
+Why It Happens:
+
+length is unsigned int (value: 0)
+
+0 - 1 in unsigned arithmetic wraps around to UINT_MAX (4,294,967,295)
+
+last is int (signed), so it gets the value -1 when assigned from the underflow
+
+The Issue:
+
+While last = -1 might seem to work (the loop condition first > last would be true), the behavior is problematic:
+
+Type confusion: Mixing unsigned subtraction with signed storage
+
+Undefined behavior potential: The comparison logic assumes valid array bounds
+
+Array access: If the logic fails, array[index] could access invalid memory
+
+Example:
+
+unsigned int length = 0;
+int last = length - 1;  // last = -1 (from UINT_MAX wrapping)
+
+// In the loop:
+int index = first + (last - first)/2;  // index = 0 + (-1 - 0)/2 = 0 + (-1)/2 = 0
+// Then: array[0] is accessed on an empty array! ❌
+
+The Fix:
+
+Add a check at the beginning of the function:
+
+bool binary_search(int array[], unsigned int length, int key) {
+    if (length == 0) return false;  // ✅ Handle empty array
+    
+    int first = 0;
+    int last = length-1;  // Now safe, length >= 1
+    while (true) {
+        int index = first + (last - first)/2;
+        if (array[index] == key) {
+            return true;
+        }
+        if (array[index] < key && index < last) {
+            first = index + 1;
+            continue;
+        }
+        if (array[index] > key && index > first) {
+            last = index - 1;
+            continue;
+        }
+        return false;
+    }
+}
+
+
+Why This Matters:
+
+While your benchmark code validates n > 0, the binary_search function should be defensive and handle edge cases independently. A function should not rely on external validation for correctness.
+
+Best Practice:
+
+Always validate inputs at function boundaries, especially when dealing with:
+
+Array lengths that could be zero
+
+Unsigned arithmetic that could underflow
+
+Pointer/array access operations
+
+
+----------
+Medium-05: Potential Unsigned Integer Underflow
+The Problem:
+
+At line 99, the function calls recursive_binary_search with length-1:
+
+bool wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    return recursive_binary_search(array, key, 0, length-1);  // ❌ Underflow when length is 0
+}
+
+When length is 0 (an empty array), the expression length-1 causes unsigned integer underflow.
+
+Why It Happens:
+
+length is unsigned int with value 0
+
+0 - 1 in unsigned arithmetic wraps around to UINT_MAX (4,294,967,295)
+
+This huge value is passed as the last parameter to recursive_binary_search
+
+The Issue:
+
+Looking at the recursive function:
+
+bool recursive_binary_search(
+    int array[],
+    int key,
+    unsigned int first,    // 0
+    unsigned int last      // UINT_MAX when length was 0!
+) {
+    if (first > last)      // 0 > 4294967295? No!
+        return false;
+    
+    // Continues with invalid logic...
+}
+
+The condition first > last fails because 0 < UINT_MAX, so the function proceeds to:
+
+unsigned int index = first + (last - first) / 2;
+// index = 0 + (4294967295 - 0) / 2 = 2147483647
+// Tries to access array[2147483647] on an empty array! ❌
+
+The Consequences:
+
+Out-of-bounds access: Attempts to read memory far beyond the array
+
+Segmentation fault: Program crash
+
+Undefined behavior: Unpredictable results
+
+The Fix:
+
+Add a check at the beginning of the wrapper function:
+
+bool wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    if (length == 0) return false;  // ✅ Handle empty array
+    return recursive_binary_search(array, key, 0, length-1);  // Now safe
+}
+
+Alternative Fix (More Robust):
+
+Handle it in the recursive function itself by checking if the range is valid:
+
+bool recursive_binary_search(
+    int array[],
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    // Handle underflow case where last wrapped around
+    if (last > 1000000000) return false;  // Sanity check
+    
+    if (first > last)
+        return false;
+    
+    // ... rest of function
+}
+
+Best Practice:
+
+The cleanest solution is to validate in the wrapper:
+
+bool wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    if (length == 0) return false;
+    return recursive_binary_search(array, key, 0, length-1);
+}
+
+This prevents the underflow from ever occurring and makes the code's intent clear.
+
+
+2 Low Severity: Unused parameter, unnecessary volatile keyword
+===============
+Low-01: Unused parameter 'length' issue in main.c at [65, 64]
+Unused Parameter 'length'
+The Problem:
+
+At line 64, the function recursive_binary_search() declares a length parameter:
+
+unsigned int recursive_binary_search(
+    int array[],
+    unsigned int length,  // ❌ Never used in the function
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+
+But this parameter is never used anywhere in the function body. The search range is entirely controlled by first and last parameters.
+
+Why It's Redundant:
+Looking at the function implementation:
+
+if (first > last)
+    return UINT_MAX;
+
+unsigned int index = (first + last) / 2;  // Uses first and last
+
+if (array[index] == key)
+    return index;
+
+if (array[index] < key)
+    return recursive_binary_search(array, length, key, index + 1, last);  // Passes length but doesn't use it
+
+return recursive_binary_search(array, length, key, first, index - 1);
+
+The length parameter is:
+- Not used for bounds checking
+- Not used for index calculation
+- Simply passed through recursive calls without purpose
+- Redundant because first and last define the search range
+
+Why This Matters:
+1. Code Clarity: Unused parameters confuse readers about the function's requirements
+2. Compiler Warnings: Modern compilers warn about unused parameters
+3. Maintenance: Future developers might think length serves a purpose
+4. Performance: Minor overhead passing an unused parameter (negligible but unnecessary)
+
+The Fix:
+Remove the length parameter entirely:
+
+unsigned int recursive_binary_search(
+    int array[],
+    // unsigned int length,  ❌ Remove this
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    if (first > last)
+        return UINT_MAX;
+
+    unsigned int index = first + (last - first) / 2;  // Fixed overflow too
+
+    if (array[index] == key)
+        return index;
+
+    if (array[index] < key)
+        return recursive_binary_search(array, key, index + 1, last);  // ✅ No length
+
+    return recursive_binary_search(array, key, first, index - 1);  // ✅ No length
+}
+
+And update the wrapper function:
+
+unsigned int wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    return recursive_binary_search(array, key, 0, length-1);  // ✅ No length passed
+}
+
+Alternative (If You Want to Keep the Signature):
+If you need to maintain API compatibility, you can silence the warning with:
+
+unsigned int recursive_binary_search(
+    int array[],
+    unsigned int length,
+    int key,
+    unsigned int first,
+    unsigned int last
+) {
+    (void)length;  // Explicitly mark as unused
+    // ... rest of function
+}
+
+But the cleaner solution is to remove it entirely since it serves no purpose.
+
+-------
+Low-02: Volatile variable unnecessary issue in main.c at [107, 106]
+Volatile Variable Unnecessary
+The Problem:
+At line 106, the hits variable is declared as volatile:
+
+volatile int hits = 0;
+
+The likely intent was to prevent the compiler from optimizing away the search operations during benchmarking. However, this is unnecessary and ineffective for this purpose.
+
+Why It's Unnecessary:
+Looking at how hits is used:
+
+volatile int hits = 0;
+
+clock_gettime(CLOCK_MONOTONIC, &start);
+
+for (int i = 0; i < loops; i++) {
+    int result = search(array, n, keys[i]);
+    if (result != UINT_MAX){
+        hits++;  // Modified inside timed section
+    }
+}
+
+clock_gettime(CLOCK_MONOTONIC, &stop);
+// hits is never used after this point!
+
+The Issues:
+1. Not Used After Timing: The hits variable is never read or used after the timing stops, so the compiler won't optimize away the loop regardless of volatile.
+2. Wrong Approach: If you want to prevent optimization of the search calls, volatile on hits doesn't guarantee that. The compiler could still optimize the search() calls themselves.
+3. Performance Impact: volatile forces the compiler to perform actual memory reads/writes on every access, which can slow down your benchmark and give inaccurate timing results.
+
+What volatile Actually Does:
+volatile tells the compiler:
+- Don't cache this variable in a register
+- Always read/write from memory
+- Don't optimize away accesses
+
+This is useful for:
+- Hardware registers
+- Memory-mapped I/O
+- Variables modified by signal handlers or other threads
+- Not useful for preventing dead code elimination in benchmarks.
+
+The Fix:
+Simply remove volatile:
+
+int hits = 0;  // ✅ Remove volatile
+
+clock_gettime(CLOCK_MONOTONIC, &start);
+
+for (int i = 0; i < loops; i++) {
+    int result = search(array, n, keys[i]);
+    if (result != UINT_MAX){
+        hits++;
+    }
+}
+
+clock_gettime(CLOCK_MONOTONIC, &stop);
+
+Better Approach (If You're Worried About Optimization):
+
+If you want to ensure the search results aren't optimized away, use the result after timing:
+
+int hits = 0;
+
+clock_gettime(CLOCK_MONOTONIC, &start);
+
+for (int i = 0; i < loops; i++) {
+    int result = search(array, n, keys[i]);
+    if (result != UINT_MAX){
+        hits++;
+    }
+}
+
+clock_gettime(CLOCK_MONOTONIC, &stop);
+
+// Use hits to prevent optimization
+if (hits < 0) {  // Never true, but compiler doesn't know
+    printf("Impossible: %d\n", hits);
+}
+
+Or use compiler-specific barriers like __asm__ volatile("") for GCC/Clang.
+
+Bottom Line:
+The volatile keyword here is unnecessary, potentially harmful to benchmark accuracy, and doesn't achieve its intended purpose. Remove it for cleaner, more accurate benchmarking code.
+
+
+

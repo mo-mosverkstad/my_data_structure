@@ -1,4 +1,1290 @@
 Linear search in unsorted array:
+Array size:      256, ELAPSED TIME PER LOOP: 2.3e+02 ns
+Array size:     2048, ELAPSED TIME PER LOOP: 1.7e+03 ns
+Array size:    16384, ELAPSED TIME PER LOOP: 1.4e+04 ns
+Array size:   131072, ELAPSED TIME PER LOOP: 1.3e+05 ns
+Array size:  1048576, ELAPSED TIME PER LOOP: 1.0e+06 ns
+Array size:  8388608, ELAPSED TIME PER LOOP: 8.3e+06 ns
+Array size: 67108864, ELAPSED TIME PER LOOP: 6.3e+07 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size} 
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
+\hline
+\textbf{ns} 
+    & $2.3\times10^{2}$ 
+    & $1.7\times10^{3}$ 
+    & $1.4\times10^{4}$ 
+    & $1.3\times10^{5}$ 
+    & $1.0\times10^{6}$ 
+    & $8.3\times10^{6}$ 
+    & $6.3\times10^{7}$ \\
+\end{tabular}
+\caption{Linear search in an unsorted array: elapsed time per loop (transposed)}
+\label{tab:linear-search-unsorted-transposed-newgen}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.3e2)
+        (2048,     1.7e3)
+        (16384,    1.4e4)
+        (131072,   1.3e5)
+        (1048576,  1.0e6)
+        (8388608,  8.3e6)
+        (67108864, 6.3e7)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares linear fit: t(n) = a*n + b
+      % a ≈ 0.93842405764, b ≈ 67534.09320
+      \addplot[
+        red,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {0.93842405764*x + 67534.09320};
+      \addlegendentry{$t(n) = 0.938424\,n + 67534.093$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Linear search (unsorted) with least-squares linear fit}
+  \label{fig:linear-search-unsorted}
+\end{figure}
+
+
+
+
+Linear search in sorted array
+Array size:      256, ELAPSED TIME PER LOOP: 2.8e+02 ns
+Array size:     2048, ELAPSED TIME PER LOOP: 1.5e+03 ns
+Array size:    16384, ELAPSED TIME PER LOOP: 1.5e+04 ns
+Array size:   131072, ELAPSED TIME PER LOOP: 1.2e+05 ns
+Array size:  1048576, ELAPSED TIME PER LOOP: 9.4e+05 ns
+Array size:  8388608, ELAPSED TIME PER LOOP: 7.3e+06 ns
+Array size: 67108864, ELAPSED TIME PER LOOP: 6.0e+07 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size} 
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
+\hline
+\textbf{ns} 
+    & $2.8\times10^{2}$
+    & $1.5\times10^{3}$
+    & $1.5\times10^{4}$
+    & $1.2\times10^{5}$
+    & $9.4\times10^{5}$
+    & $7.3\times10^{6}$
+    & $6.0\times10^{7}$ \\
+\end{tabular}
+\caption{Linear search in a sorted array: elapsed time per loop (transposed)}
+\label{tab:linear-search-sorted-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.8e2)
+        (2048,     1.5e3)
+        (16384,    1.5e4)
+        (131072,   1.2e5)
+        (1048576,  9.4e5)
+        (8388608,  7.3e6)
+        (67108864, 6.0e7)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares linear fit: t(n) = a*n + b
+      % a ≈ 0.89342, b ≈ 30082.23
+      \addplot[
+        red,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {0.89342*x + 30082.23};
+      \addlegendentry{$t(n) = 0.89342\,n + 30082.23$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Linear search (sorted) with least-squares linear fit}
+  \label{fig:linear-search-sorted}
+\end{figure}
+
+
+
+Binary search
+Array size:      256, ELAPSED TIME PER LOOP: 65 ns
+Array size:     2048, ELAPSED TIME PER LOOP: 85 ns
+Array size:    16384, ELAPSED TIME PER LOOP: 1.1e+02 ns
+Array size:   131072, ELAPSED TIME PER LOOP: 1.4e+02 ns
+Array size:  1048576, ELAPSED TIME PER LOOP: 3.2e+02 ns
+Array size:  8388608, ELAPSED TIME PER LOOP: 8.3e+02 ns
+Array size: 67108864, ELAPSED TIME PER LOOP: 1.4e+03 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
+\hline
+\textbf{ns}
+    & 65
+    & 85
+    & $1.1\times10^{2}$
+    & $1.4\times10^{2}$
+    & $3.2\times10^{2}$
+    & $8.3\times10^{2}$
+    & $1.4\times10^{3}$ \\
+\end{tabular}
+\caption{Binary search: elapsed time per loop (transposed)}
+\label{tab:binary-search-transposed-new3}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      65)
+        (2048,     85)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  830)
+        (67108864, 1400)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares log2 fit: t(n) = a*log2(n) + b
+      % a ≈ 87.324, b ≈ -347.709
+      \addplot[
+        red,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {87.324*(ln(x)/ln(2)) - 347.709};
+      \addlegendentry{$t(n)=87.324\,\log_{2}n - 347.709$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Binary search: measured data and $\log_2 n$ regression fit}
+  \label{fig:binary-search-new3}
+\end{figure}
+
+
+
+Recursive binary search
+Array size:      256, ELAPSED TIME PER LOOP: 60 ns
+Array size:     2048, ELAPSED TIME PER LOOP: 82 ns
+Array size:    16384, ELAPSED TIME PER LOOP: 1.1e+02 ns
+Array size:   131072, ELAPSED TIME PER LOOP: 1.4e+02 ns
+Array size:  1048576, ELAPSED TIME PER LOOP: 3.2e+02 ns
+Array size:  8388608, ELAPSED TIME PER LOOP: 8.6e+02 ns
+Array size: 67108864, ELAPSED TIME PER LOOP: 1.4e+03 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
+\hline
+\textbf{ns}
+    & 60
+    & 82
+    & $1.1\times10^{2}$
+    & $1.4\times10^{2}$
+    & $3.2\times10^{2}$
+    & $8.6\times10^{2}$
+    & $1.4\times10^{3}$ \\
+\end{tabular}
+\caption{Recursive binary search: elapsed time per loop (transposed)}
+\label{tab:recursive-binary-search-transposed-new4}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6.5cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      60)
+        (2048,     82)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  860)
+        (67108864, 1400)
+      };
+      \addlegendentry{Measured}
+
+      % Improved weighted log2 regression:
+      % t(n) = 76.81 * log2(n) - 242.15
+      \addplot[
+        red,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {76.81*(ln(x)/ln(2)) - 242.15};
+      \addlegendentry{$t(n)=76.81\,\log_{2}n - 242.15$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Recursive binary search: improved $\log_2 n$ regression fitting the measured data}
+  \label{fig:recursive-binary-search-new4}
+\end{figure}
+
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ==========================================================
+      % Linear search (unsorted)
+      % ==========================================================
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.3e2)
+        (2048,     1.7e3)
+        (16384,    1.4e4)
+        (131072,   1.3e5)
+        (1048576,  1.0e6)
+        (8388608,  8.3e6)
+        (67108864, 6.3e7)
+      };
+      \addlegendentry{Linear (unsorted) — measured}
+
+      % Fit: a = 0.938424, b = 67534.093
+      \addplot[
+        blue,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {0.938424*x + 67534.093};
+      \addlegendentry{Linear (unsorted) — fit}
+
+      % ==========================================================
+      % Linear search (sorted)
+      % ==========================================================
+      \addplot+[
+        mark=square*,
+        thick,
+        color=green!60!black
+      ] coordinates {
+        (256,      2.8e2)
+        (2048,     1.5e3)
+        (16384,    1.5e4)
+        (131072,   1.2e5)
+        (1048576,  9.4e5)
+        (8388608,  7.3e6)
+        (67108864, 6.0e7)
+      };
+      \addlegendentry{Linear (sorted) — measured}
+
+      % Fit: a = 0.89342, b = 30082.23
+      \addplot[
+        green!60!black,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {0.89342*x + 30082.23};
+      \addlegendentry{Linear (sorted) — fit}
+
+      % ==========================================================
+      % Binary search
+      % ==========================================================
+      \addplot+[
+        mark=triangle*,
+        thick,
+        color=red
+      ] coordinates {
+        (256,      65)
+        (2048,     85)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  830)
+        (67108864, 1400)
+      };
+      \addlegendentry{Binary — measured}
+
+      % Improved log2 fit: a = 73.52, b = -230.41
+      \addplot[
+        red,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {73.52*(ln(x)/ln(2)) - 230.41};
+      \addlegendentry{Binary — fit}
+
+      % ==========================================================
+      % Recursive binary search
+      % ==========================================================
+      \addplot+[
+        mark=diamond*,
+        thick,
+        color=purple
+      ] coordinates {
+        (256,      60)
+        (2048,     82)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  860)
+        (67108864, 1400)
+      };
+      \addlegendentry{Recursive binary — measured}
+
+      % Recursive binary improved log2 fit: a = 76.81, b = -242.15
+      \addplot[
+        purple,
+        densely dashed,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {76.81*(ln(x)/ln(2)) - 242.15};
+      \addlegendentry{Recursive binary — fit}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Comparison of linear (unsorted), linear (sorted), binary, and recursive binary search algorithms}
+  \label{fig:search-comparison-all}
+\end{figure}
+
+\noindent
+Figure~\ref{fig:search-comparison-all} illustrates the performance characteristics of four search algorithms across array sizes ranging from $2^{8}$ to $2^{26}$. The results clearly highlight the theoretical time complexities of the algorithms. Both variants of linear search exhibit a strictly linear growth pattern, with the elapsed time increasing in direct proportion to the array size. This behavior corresponds to their $\mathcal{O}(n)$ complexity, where doubling or octupling the input size leads to a comparable increase in execution time.
+
+In contrast, the binary search and recursive binary search curves grow much more slowly. Their execution time increases approximately with $\log_2 n$, consistent with their $\mathcal{O}(\log n)$ complexity. Even across a scaling factor of over $250{,}000$ in input size, the running time only rises from tens of nanoseconds to roughly a microsecond. This demonstrates the substantial efficiency advantage of logarithmic-time search over linear methods.
+
+The fitted curves in the figure closely follow the measured data, capturing the expected asymptotic trends. Linear regression models provide an excellent approximation for the linear search algorithms, while improved logarithmic regression accurately models the behavior of both binary search variants. Overall, the comparison highlights the dramatic practical impact of algorithmic complexity: at the largest tested input size, linear search requires tens of milliseconds, whereas binary search completes in only a few microseconds.
+
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ==========================================================
+      % Linear search (unsorted)
+      % ==========================================================
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.3e2)
+        (2048,     1.7e3)
+        (16384,    1.4e4)
+        (131072,   1.3e5)
+        (1048576,  1.0e6)
+        (8388608,  8.3e6)
+        (67108864, 6.3e7)
+      };
+      \addlegendentry{Linear (unsorted) — measured}
+
+      % Linear fit segment only (no big domain)
+      \addplot[
+        blue,
+        densely dashed,
+        thick
+      ] coordinates {
+        (256,      0.938424*256 + 67534.093)
+        (67108864, 0.938424*67108864 + 67534.093)
+      };
+      \addlegendentry{Linear (unsorted) — fit}
+
+      % ==========================================================
+      % Linear search (sorted)
+      % ==========================================================
+      \addplot+[
+        mark=square*,
+        thick,
+        color=green!60!black
+      ] coordinates {
+        (256,      2.8e2)
+        (2048,     1.5e3)
+        (16384,    1.5e4)
+        (131072,   1.2e5)
+        (1048576,  9.4e5)
+        (8388608,  7.3e6)
+        (67108864, 6.0e7)
+      };
+      \addlegendentry{Linear (sorted) — measured}
+
+      % Linear fit segment only
+      \addplot[
+        green!60!black,
+        densely dashed,
+        thick
+      ] coordinates {
+        (256,      0.89342*256 + 30082.23)
+        (67108864, 0.89342*67108864 + 30082.23)
+      };
+      \addlegendentry{Linear (sorted) — fit}
+
+      % ==========================================================
+      % Binary search
+      % ==========================================================
+      \addplot+[
+        mark=triangle*,
+        thick,
+        color=red
+      ] coordinates {
+        (256,      65)
+        (2048,     85)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  830)
+        (67108864, 1400)
+      };
+      \addlegendentry{Binary — measured}
+
+      % Log fit segment only
+      \addplot[
+        red,
+        densely dashed,
+        thick
+      ] coordinates {
+        (256,      73.52*(ln(256)/ln(2)) - 230.41)
+        (67108864, 73.52*(ln(67108864)/ln(2)) - 230.41)
+      };
+      \addlegendentry{Binary — fit}
+
+      % ==========================================================
+      % Recursive binary search
+      % ==========================================================
+      \addplot+[
+        mark=diamond*,
+        thick,
+        color=purple
+      ] coordinates {
+        (256,      60)
+        (2048,     82)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  860)
+        (67108864, 1400)
+      };
+      \addlegendentry{Recursive binary — measured}
+
+      % Log fit segment only
+      \addplot[
+        purple,
+        densely dashed,
+        thick
+      ] coordinates {
+        (256,      76.81*(ln(256)/ln(2)) - 242.15)
+        (67108864, 76.81*(ln(67108864)/ln(2)) - 242.15)
+      };
+      \addlegendentry{Recursive binary — fit}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Comparison of linear (unsorted), linear (sorted), binary, and recursive binary search algorithms}
+  \label{fig:search-comparison-all}
+\end{figure}
+
+
+
+Linear search in unsorted array:
+--- BENCHMARK MEASUREMENTS (0, 256 SIZE) ---
+ELAPSED TIME PER LOOP: 2.6e+02 ns
+ELAPSED TIME PER LOOP: 2.9e+02 ns
+ELAPSED TIME PER LOOP: 2.5e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 2.5e+02 ns
+ELAPSED TIME PER LOOP: 2.5e+02 ns
+ELAPSED TIME PER LOOP: 2.3e+02 ns
+ELAPSED TIME PER LOOP: 2.5e+02 ns
+ELAPSED TIME PER LOOP: 2.5e+02 ns
+ELAPSED TIME PER LOOP: 2.9e+02 ns
+ELAPSED TIME PER LOOP: 2.7e+02 ns
+ELAPSED TIME PER LOOP: 3.1e+02 ns
+ELAPSED TIME PER LOOP: 2.9e+02 ns
+
+--- BENCHMARK SUMMARY (0) ---
+MAX TIME: 3.1e+02 ns/operation
+MIN TIME: 2.3e+02 ns/operation
+AVG TIME: 2.6e+02 ns/operation
+TOT TIME: 4.2e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (1, 2048 SIZE) ---
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2.3e+03 ns
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2.5e+03 ns
+ELAPSED TIME PER LOOP: 2.6e+03 ns
+ELAPSED TIME PER LOOP: 2.8e+03 ns
+ELAPSED TIME PER LOOP: 2.5e+03 ns
+ELAPSED TIME PER LOOP: 2.3e+03 ns
+ELAPSED TIME PER LOOP: 2.3e+03 ns
+ELAPSED TIME PER LOOP: 2e+03 ns
+ELAPSED TIME PER LOOP: 2.4e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 1.8e+03 ns
+
+--- BENCHMARK SUMMARY (1) ---
+MAX TIME: 2.8e+03 ns/operation
+MIN TIME: 1.7e+03 ns/operation
+AVG TIME: 2.2e+03 ns/operation
+TOT TIME: 3.6e+04 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (2, 16384 SIZE) ---
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.4e+04 ns
+ELAPSED TIME PER LOOP: 1.8e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.8e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.8e+04 ns
+ELAPSED TIME PER LOOP: 2e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+
+--- BENCHMARK SUMMARY (2) ---
+MAX TIME: 2e+04 ns/operation
+MIN TIME: 1.4e+04 ns/operation
+AVG TIME: 1.7e+04 ns/operation
+TOT TIME: 2.7e+05 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (3, 131072 SIZE) ---
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+
+--- BENCHMARK SUMMARY (3) ---
+MAX TIME: 1.5e+05 ns/operation
+MIN TIME: 1.3e+05 ns/operation
+AVG TIME: 1.4e+05 ns/operation
+TOT TIME: 2.2e+06 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (4, 1048576 SIZE) ---
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.3e+06 ns
+ELAPSED TIME PER LOOP: 1.2e+06 ns
+ELAPSED TIME PER LOOP: 1.2e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1.2e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.2e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+
+--- BENCHMARK SUMMARY (4) ---
+MAX TIME: 1.3e+06 ns/operation
+MIN TIME: 1e+06 ns/operation
+AVG TIME: 1.1e+06 ns/operation
+TOT TIME: 1.8e+07 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (5, 8388608 SIZE) ---
+ELAPSED TIME PER LOOP: 9.3e+06 ns
+ELAPSED TIME PER LOOP: 9.1e+06 ns
+ELAPSED TIME PER LOOP: 9.4e+06 ns
+ELAPSED TIME PER LOOP: 9.8e+06 ns
+ELAPSED TIME PER LOOP: 9.3e+06 ns
+ELAPSED TIME PER LOOP: 9.5e+06 ns
+ELAPSED TIME PER LOOP: 9.2e+06 ns
+ELAPSED TIME PER LOOP: 9.3e+06 ns
+ELAPSED TIME PER LOOP: 8.8e+06 ns
+ELAPSED TIME PER LOOP: 8.3e+06 ns
+ELAPSED TIME PER LOOP: 8.3e+06 ns
+ELAPSED TIME PER LOOP: 8.9e+06 ns
+ELAPSED TIME PER LOOP: 8.6e+06 ns
+ELAPSED TIME PER LOOP: 8.6e+06 ns
+ELAPSED TIME PER LOOP: 8.7e+06 ns
+ELAPSED TIME PER LOOP: 8.9e+06 ns
+
+--- BENCHMARK SUMMARY (5) ---
+MAX TIME: 9.8e+06 ns/operation
+MIN TIME: 8.3e+06 ns/operation
+AVG TIME: 9e+06 ns/operation
+TOT TIME: 1.4e+08 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (6, 67108864 SIZE) ---
+ELAPSED TIME PER LOOP: 8e+07 ns
+ELAPSED TIME PER LOOP: 7.1e+07 ns
+ELAPSED TIME PER LOOP: 6.5e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.6e+07 ns
+ELAPSED TIME PER LOOP: 6.7e+07 ns
+ELAPSED TIME PER LOOP: 6.6e+07 ns
+ELAPSED TIME PER LOOP: 6.5e+07 ns
+ELAPSED TIME PER LOOP: 6.5e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.7e+07 ns
+ELAPSED TIME PER LOOP: 6.9e+07 ns
+ELAPSED TIME PER LOOP: 6.9e+07 ns
+ELAPSED TIME PER LOOP: 6.9e+07 ns
+ELAPSED TIME PER LOOP: 6.7e+07 ns
+ELAPSED TIME PER LOOP: 6.8e+07 ns
+
+--- BENCHMARK SUMMARY (6) ---
+MAX TIME: 8e+07 ns/operation
+MIN TIME: 6.3e+07 ns/operation
+AVG TIME: 6.8e+07 ns/operation
+TOT TIME: 1.1e+09 ns/operation
+
+
+
+--- Linear search in sorted array ---
+--- BENCHMARK MEASUREMENTS (0, 256 SIZE) ---
+ELAPSED TIME PER LOOP: 3.2e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3.4e+02 ns
+ELAPSED TIME PER LOOP: 3.1e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3.3e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 4e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 3.1e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3e+02 ns
+ELAPSED TIME PER LOOP: 2.8e+02 ns
+
+--- BENCHMARK SUMMARY (0) ---
+MAX TIME: 4e+02 ns/operation
+MIN TIME: 2.8e+02 ns/operation
+AVG TIME: 3.4e+02 ns/operation
+TOT TIME: 5.4e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (1, 2048 SIZE) ---
+ELAPSED TIME PER LOOP: 2.4e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 2.6e+03 ns
+ELAPSED TIME PER LOOP: 2.9e+03 ns
+ELAPSED TIME PER LOOP: 2.9e+03 ns
+ELAPSED TIME PER LOOP: 1.8e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+
+--- BENCHMARK SUMMARY (1) ---
+MAX TIME: 2.9e+03 ns/operation
+MIN TIME: 1.5e+03 ns/operation
+AVG TIME: 1.9e+03 ns/operation
+TOT TIME: 3e+04 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (2, 16384 SIZE) ---
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.8e+04 ns
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.6e+04 ns
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.9e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.5e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+ELAPSED TIME PER LOOP: 1.8e+04 ns
+ELAPSED TIME PER LOOP: 1.7e+04 ns
+
+--- BENCHMARK SUMMARY (2) ---
+MAX TIME: 1.9e+04 ns/operation
+MIN TIME: 1.5e+04 ns/operation
+AVG TIME: 1.6e+04 ns/operation
+TOT TIME: 2.6e+05 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (3, 131072 SIZE) ---
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.5e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.4e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.2e+05 ns
+ELAPSED TIME PER LOOP: 1.3e+05 ns
+
+--- BENCHMARK SUMMARY (3) ---
+MAX TIME: 1.5e+05 ns/operation
+MIN TIME: 1.2e+05 ns/operation
+AVG TIME: 1.3e+05 ns/operation
+TOT TIME: 2.1e+06 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (4, 1048576 SIZE) ---
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 9.4e+05 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1.2e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 9.6e+05 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 9.6e+05 ns
+ELAPSED TIME PER LOOP: 1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 1.1e+06 ns
+ELAPSED TIME PER LOOP: 9.9e+05 ns
+
+--- BENCHMARK SUMMARY (4) ---
+MAX TIME: 1.2e+06 ns/operation
+MIN TIME: 9.4e+05 ns/operation
+AVG TIME: 1e+06 ns/operation
+TOT TIME: 1.7e+07 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (5, 8388608 SIZE) ---
+ELAPSED TIME PER LOOP: 8.4e+06 ns
+ELAPSED TIME PER LOOP: 8.2e+06 ns
+ELAPSED TIME PER LOOP: 8e+06 ns
+ELAPSED TIME PER LOOP: 8.4e+06 ns
+ELAPSED TIME PER LOOP: 8.7e+06 ns
+ELAPSED TIME PER LOOP: 8.7e+06 ns
+ELAPSED TIME PER LOOP: 9e+06 ns
+ELAPSED TIME PER LOOP: 8.7e+06 ns
+ELAPSED TIME PER LOOP: 8.4e+06 ns
+ELAPSED TIME PER LOOP: 7.9e+06 ns
+ELAPSED TIME PER LOOP: 7.7e+06 ns
+ELAPSED TIME PER LOOP: 8e+06 ns
+ELAPSED TIME PER LOOP: 7.4e+06 ns
+ELAPSED TIME PER LOOP: 7.7e+06 ns
+ELAPSED TIME PER LOOP: 7.9e+06 ns
+ELAPSED TIME PER LOOP: 7.3e+06 ns
+
+--- BENCHMARK SUMMARY (5) ---
+MAX TIME: 9e+06 ns/operation
+MIN TIME: 7.3e+06 ns/operation
+AVG TIME: 8.2e+06 ns/operation
+TOT TIME: 1.3e+08 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (6, 67108864 SIZE) ---
+ELAPSED TIME PER LOOP: 6.1e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.4e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.1e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.7e+07 ns
+ELAPSED TIME PER LOOP: 6.3e+07 ns
+ELAPSED TIME PER LOOP: 6.2e+07 ns
+ELAPSED TIME PER LOOP: 6e+07 ns
+ELAPSED TIME PER LOOP: 6e+07 ns
+ELAPSED TIME PER LOOP: 6e+07 ns
+ELAPSED TIME PER LOOP: 6.6e+07 ns
+ELAPSED TIME PER LOOP: 6.1e+07 ns
+ELAPSED TIME PER LOOP: 6.2e+07 ns
+ELAPSED TIME PER LOOP: 6e+07 ns
+
+--- BENCHMARK SUMMARY (6) ---
+MAX TIME: 6.7e+07 ns/operation
+MIN TIME: 6e+07 ns/operation
+AVG TIME: 6.2e+07 ns/operation
+TOT TIME: 9.9e+08 ns/operation
+
+
+--- Binary search ---
+--- BENCHMARK MEASUREMENTS (0, 256 SIZE) ---
+ELAPSED TIME PER LOOP: 65 ns
+ELAPSED TIME PER LOOP: 69 ns
+ELAPSED TIME PER LOOP: 67 ns
+ELAPSED TIME PER LOOP: 67 ns
+ELAPSED TIME PER LOOP: 71 ns
+ELAPSED TIME PER LOOP: 85 ns
+ELAPSED TIME PER LOOP: 76 ns
+ELAPSED TIME PER LOOP: 70 ns
+ELAPSED TIME PER LOOP: 82 ns
+ELAPSED TIME PER LOOP: 66 ns
+ELAPSED TIME PER LOOP: 72 ns
+ELAPSED TIME PER LOOP: 70 ns
+ELAPSED TIME PER LOOP: 69 ns
+ELAPSED TIME PER LOOP: 67 ns
+ELAPSED TIME PER LOOP: 1.2e+02 ns
+ELAPSED TIME PER LOOP: 72 ns
+
+--- BENCHMARK SUMMARY (0) ---
+MAX TIME: 1.2e+02 ns/operation
+MIN TIME: 65 ns/operation
+AVG TIME: 75 ns/operation
+TOT TIME: 1.2e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (1, 2048 SIZE) ---
+ELAPSED TIME PER LOOP: 93 ns
+ELAPSED TIME PER LOOP: 89 ns
+ELAPSED TIME PER LOOP: 85 ns
+ELAPSED TIME PER LOOP: 87 ns
+ELAPSED TIME PER LOOP: 88 ns
+ELAPSED TIME PER LOOP: 87 ns
+ELAPSED TIME PER LOOP: 88 ns
+ELAPSED TIME PER LOOP: 87 ns
+ELAPSED TIME PER LOOP: 99 ns
+ELAPSED TIME PER LOOP: 1e+02 ns
+ELAPSED TIME PER LOOP: 87 ns
+ELAPSED TIME PER LOOP: 89 ns
+ELAPSED TIME PER LOOP: 98 ns
+ELAPSED TIME PER LOOP: 87 ns
+ELAPSED TIME PER LOOP: 88 ns
+ELAPSED TIME PER LOOP: 88 ns
+
+--- BENCHMARK SUMMARY (1) ---
+MAX TIME: 1e+02 ns/operation
+MIN TIME: 85 ns/operation
+AVG TIME: 90 ns/operation
+TOT TIME: 1.4e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (2, 16384 SIZE) ---
+ELAPSED TIME PER LOOP: 1.3e+02 ns
+ELAPSED TIME PER LOOP: 1.3e+02 ns
+ELAPSED TIME PER LOOP: 1.6e+02 ns
+ELAPSED TIME PER LOOP: 1.2e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.7e+02 ns
+ELAPSED TIME PER LOOP: 1.6e+02 ns
+ELAPSED TIME PER LOOP: 1.7e+02 ns
+ELAPSED TIME PER LOOP: 1.6e+02 ns
+
+--- BENCHMARK SUMMARY (2) ---
+MAX TIME: 1.7e+02 ns/operation
+MIN TIME: 1.1e+02 ns/operation
+AVG TIME: 1.3e+02 ns/operation
+TOT TIME: 2.1e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (3, 131072 SIZE) ---
+ELAPSED TIME PER LOOP: 2.3e+02 ns
+ELAPSED TIME PER LOOP: 2.2e+02 ns
+ELAPSED TIME PER LOOP: 2e+02 ns
+ELAPSED TIME PER LOOP: 2.1e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.7e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+
+--- BENCHMARK SUMMARY (3) ---
+MAX TIME: 2.4e+02 ns/operation
+MIN TIME: 1.4e+02 ns/operation
+AVG TIME: 1.7e+02 ns/operation
+TOT TIME: 2.7e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (4, 1048576 SIZE) ---
+ELAPSED TIME PER LOOP: 5.5e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 3.4e+02 ns
+ELAPSED TIME PER LOOP: 3.6e+02 ns
+ELAPSED TIME PER LOOP: 3.4e+02 ns
+ELAPSED TIME PER LOOP: 4e+02 ns
+ELAPSED TIME PER LOOP: 3.8e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 6.2e+02 ns
+ELAPSED TIME PER LOOP: 6.3e+02 ns
+ELAPSED TIME PER LOOP: 5.5e+02 ns
+ELAPSED TIME PER LOOP: 4e+02 ns
+ELAPSED TIME PER LOOP: 3.4e+02 ns
+ELAPSED TIME PER LOOP: 3.5e+02 ns
+ELAPSED TIME PER LOOP: 3.2e+02 ns
+
+--- BENCHMARK SUMMARY (4) ---
+MAX TIME: 6.3e+02 ns/operation
+MIN TIME: 3.2e+02 ns/operation
+AVG TIME: 4.2e+02 ns/operation
+TOT TIME: 6.7e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (5, 8388608 SIZE) ---
+ELAPSED TIME PER LOOP: 1.1e+03 ns
+ELAPSED TIME PER LOOP: 9.7e+02 ns
+ELAPSED TIME PER LOOP: 9.6e+02 ns
+ELAPSED TIME PER LOOP: 1e+03 ns
+ELAPSED TIME PER LOOP: 8.5e+02 ns
+ELAPSED TIME PER LOOP: 9.7e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+03 ns
+ELAPSED TIME PER LOOP: 8.3e+02 ns
+ELAPSED TIME PER LOOP: 8.6e+02 ns
+ELAPSED TIME PER LOOP: 9.8e+02 ns
+ELAPSED TIME PER LOOP: 8.3e+02 ns
+ELAPSED TIME PER LOOP: 9.3e+02 ns
+ELAPSED TIME PER LOOP: 1e+03 ns
+ELAPSED TIME PER LOOP: 1.1e+03 ns
+ELAPSED TIME PER LOOP: 8.9e+02 ns
+ELAPSED TIME PER LOOP: 9.9e+02 ns
+
+--- BENCHMARK SUMMARY (5) ---
+MAX TIME: 1.1e+03 ns/operation
+MIN TIME: 8.3e+02 ns/operation
+AVG TIME: 9.6e+02 ns/operation
+TOT TIME: 1.5e+04 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (6, 67108864 SIZE) ---
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 2e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 1.8e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.9e+03 ns
+ELAPSED TIME PER LOOP: 1.8e+03 ns
+ELAPSED TIME PER LOOP: 2.3e+03 ns
+
+--- BENCHMARK SUMMARY (6) ---
+MAX TIME: 2.3e+03 ns/operation
+MIN TIME: 1.4e+03 ns/operation
+AVG TIME: 1.7e+03 ns/operation
+TOT TIME: 2.7e+04 ns/operation
+
+
+--- Recursive binary search ---
+--- BENCHMARK MEASUREMENTS (0, 256 SIZE) ---
+ELAPSED TIME PER LOOP: 1.3e+02 ns
+ELAPSED TIME PER LOOP: 1e+02 ns
+ELAPSED TIME PER LOOP: 72 ns
+ELAPSED TIME PER LOOP: 1.9e+02 ns
+ELAPSED TIME PER LOOP: 99 ns
+ELAPSED TIME PER LOOP: 76 ns
+ELAPSED TIME PER LOOP: 63 ns
+ELAPSED TIME PER LOOP: 79 ns
+ELAPSED TIME PER LOOP: 86 ns
+ELAPSED TIME PER LOOP: 73 ns
+ELAPSED TIME PER LOOP: 1e+02 ns
+ELAPSED TIME PER LOOP: 81 ns
+ELAPSED TIME PER LOOP: 60 ns
+ELAPSED TIME PER LOOP: 86 ns
+ELAPSED TIME PER LOOP: 91 ns
+ELAPSED TIME PER LOOP: 76 ns
+
+--- BENCHMARK SUMMARY (0) ---
+MAX TIME: 1.9e+02 ns/operation
+MIN TIME: 60 ns/operation
+AVG TIME: 92 ns/operation
+TOT TIME: 1.5e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (1, 2048 SIZE) ---
+ELAPSED TIME PER LOOP: 88 ns
+ELAPSED TIME PER LOOP: 98 ns
+ELAPSED TIME PER LOOP: 1e+02 ns
+ELAPSED TIME PER LOOP: 84 ns
+ELAPSED TIME PER LOOP: 95 ns
+ELAPSED TIME PER LOOP: 94 ns
+ELAPSED TIME PER LOOP: 83 ns
+ELAPSED TIME PER LOOP: 84 ns
+ELAPSED TIME PER LOOP: 1.6e+02 ns
+ELAPSED TIME PER LOOP: 83 ns
+ELAPSED TIME PER LOOP: 83 ns
+ELAPSED TIME PER LOOP: 82 ns
+ELAPSED TIME PER LOOP: 94 ns
+ELAPSED TIME PER LOOP: 83 ns
+ELAPSED TIME PER LOOP: 82 ns
+ELAPSED TIME PER LOOP: 97 ns
+
+--- BENCHMARK SUMMARY (1) ---
+MAX TIME: 1.6e+02 ns/operation
+MIN TIME: 82 ns/operation
+AVG TIME: 93 ns/operation
+TOT TIME: 1.5e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (2, 16384 SIZE) ---
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+ELAPSED TIME PER LOOP: 1.1e+02 ns
+
+--- BENCHMARK SUMMARY (2) ---
+MAX TIME: 1.1e+02 ns/operation
+MIN TIME: 1.1e+02 ns/operation
+AVG TIME: 1.1e+02 ns/operation
+TOT TIME: 1.8e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (3, 131072 SIZE) ---
+ELAPSED TIME PER LOOP: 1.6e+02 ns
+ELAPSED TIME PER LOOP: 3e+02 ns
+ELAPSED TIME PER LOOP: 2.4e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 2.1e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.5e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+ELAPSED TIME PER LOOP: 1.4e+02 ns
+
+--- BENCHMARK SUMMARY (3) ---
+MAX TIME: 3e+02 ns/operation
+MIN TIME: 1.4e+02 ns/operation
+AVG TIME: 1.6e+02 ns/operation
+TOT TIME: 2.6e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (4, 1048576 SIZE) ---
+ELAPSED TIME PER LOOP: 4.5e+02 ns
+ELAPSED TIME PER LOOP: 3.9e+02 ns
+ELAPSED TIME PER LOOP: 3.3e+02 ns
+ELAPSED TIME PER LOOP: 4e+02 ns
+ELAPSED TIME PER LOOP: 3.8e+02 ns
+ELAPSED TIME PER LOOP: 3.6e+02 ns
+ELAPSED TIME PER LOOP: 3.6e+02 ns
+ELAPSED TIME PER LOOP: 3.2e+02 ns
+ELAPSED TIME PER LOOP: 6.5e+02 ns
+ELAPSED TIME PER LOOP: 3.7e+02 ns
+ELAPSED TIME PER LOOP: 6.7e+02 ns
+ELAPSED TIME PER LOOP: 7.4e+02 ns
+ELAPSED TIME PER LOOP: 6.4e+02 ns
+ELAPSED TIME PER LOOP: 8.3e+02 ns
+ELAPSED TIME PER LOOP: 5.7e+02 ns
+ELAPSED TIME PER LOOP: 3.8e+02 ns
+
+--- BENCHMARK SUMMARY (4) ---
+MAX TIME: 8.3e+02 ns/operation
+MIN TIME: 3.2e+02 ns/operation
+AVG TIME: 4.9e+02 ns/operation
+TOT TIME: 7.8e+03 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (5, 8388608 SIZE) ---
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 9.9e+02 ns
+ELAPSED TIME PER LOOP: 1.3e+03 ns
+ELAPSED TIME PER LOOP: 8.6e+02 ns
+ELAPSED TIME PER LOOP: 1e+03 ns
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 1e+03 ns
+ELAPSED TIME PER LOOP: 1.1e+03 ns
+ELAPSED TIME PER LOOP: 1.2e+03 ns
+ELAPSED TIME PER LOOP: 9.9e+02 ns
+ELAPSED TIME PER LOOP: 9.8e+02 ns
+ELAPSED TIME PER LOOP: 9.1e+02 ns
+ELAPSED TIME PER LOOP: 9.8e+02 ns
+
+--- BENCHMARK SUMMARY (5) ---
+MAX TIME: 1.3e+03 ns/operation
+MIN TIME: 8.6e+02 ns/operation
+AVG TIME: 1.1e+03 ns/operation
+TOT TIME: 1.7e+04 ns/operation
+
+
+--- BENCHMARK MEASUREMENTS (6, 67108864 SIZE) ---
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.8e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 1.7e+03 ns
+ELAPSED TIME PER LOOP: 2e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 2e+03 ns
+ELAPSED TIME PER LOOP: 1.6e+03 ns
+ELAPSED TIME PER LOOP: 2e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 2.2e+03 ns
+ELAPSED TIME PER LOOP: 1.4e+03 ns
+ELAPSED TIME PER LOOP: 1.5e+03 ns
+ELAPSED TIME PER LOOP: 2.3e+03 ns
+
+--- BENCHMARK SUMMARY (6) ---
+MAX TIME: 2.3e+03 ns/operation
+MIN TIME: 1.4e+03 ns/operation
+AVG TIME: 1.7e+03 ns/operation
+TOT TIME: 2.8e+04 ns/operation
+
+
+================ OLD RESULTS ================
+Linear search in unsorted array:
 Array size:   1024, ELAPSED TIME PER LOOP: 9.0e+02 ns
 Array size:   2048, ELAPSED TIME PER LOOP: 1.8e+03 ns
 Array size:   4096, ELAPSED TIME PER LOOP: 3.6e+03 ns

@@ -34,15 +34,16 @@ For measuring benchmark execution time, the POSIX monotonic clock (\texttt{CLOCK
         return (t_stop->tv_nsec - t_start->tv_nsec) +
                (t_stop->tv_sec - t_start->tv_sec) * 1000000000;
     }
-    // memory allocation for array
-    clock_gettime(CLOCK_MONOTONIC, &t_start);
-    // algorithm
-    clock_gettime(CLOCK_MONOTONIC, &t_stop);
-    // deallocate array memory
-    return nano_seconds(&t_start, &t_stop);
-\end{minted}
 
-However, the precision is typically on the order of hundreds nanoseconds, which makes timing individual operations unreliable. To mitigate this, each algorithm is executed repeatedly in a batch (1024 iterations) to measure the total execution time of the batch. Execution time of each operation can be calculated by dividing the batch execution time by number of iterations.
+    void benchmark_run(){
+        // memory allocation for array
+        clock_gettime(CLOCK_MONOTONIC, &t_start);
+        // algorithm
+        clock_gettime(CLOCK_MONOTONIC, &t_stop);
+        // deallocate array memory
+        return nano_seconds(&t_start, &t_stop);
+    }
+\end{minted}
 
 Due to hardware constraints, operating system scheduling, and background process, execution time can fluctuate between each operation execution. To minimize the uncertainty, each benchmark is repeated multiple times while reporting the minimum elapsed time.
 
@@ -53,43 +54,46 @@ Set up the rest of a benchmark and do some measurements for a growing number of 
 sorted linear search: Now, if we know that the array is sorted we can of course do a quick optimization - we can stop the search once the next element in the array is larger then the key that we are looking for. Take a wild guess, how much better is this compared to our unsorted solution? + Benchmark statistics table+diagrams, regression and time complexity
 \fi
 
+Linear search algorithm can both be implemented in an unsorted and a sorted array.
+
+\subsection*{Unsorted array}
+
 A linear search algorithm searches for a given key in an unsorted array by starting at the first element and comparing each element to the key one by one. If the element matches the key, the algorithm returns the index of that element. If the end of the array is reached without a match, the key doesn't exist in array and the largest unsigned integer value is returned.
 
 \begin{minted}{c}
-  unsigned int linear_search(int array[], unsigned int length, int key) {
+  bool unsorted_search(int array[], int length, int key) {
       for (int index = 0; index < length; index++) {
           if (array[index] == key) {
-              return index;
+              return true;
           }
       }
-      return UINT_MAX;
+      return false;
   }
 \end{minted}
 
-In terms of elapsed time of the algorithm, the whole array is iterated over in worst case. Given the array size $n$, $n$ amount of comparison checks are performed in worst case. However in best case scenario, the first element matches the key, thus only one comparison is conducted. The estimated average time is calculated as $t(n)=a(1+t)/2=1/2+t/2$, where $a$ is the time cost for number comparison, which falls into $O(n)$ time complexity.
+In terms of elapsed time of the algorithm, the whole array is iterated over in worst case. Given the array size $n$, $n$ amount of comparison checks are performed in worst case. However in best case scenario, the first element matches the key, thus only one comparison is performed. The estimated average time is calculated as $t(n)=a(1+n)/2=1/2+n/2$, where $a$ is the time cost for number comparison, which falls into $O(n)$ time complexity.
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{l|cccccccc}
+\begin{tabular}{l|ccccccc}
 \textbf{Size} 
-    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
 \hline
 \textbf{ns} 
-    & $9.0\times10^{2}$ 
-    & $1.8\times10^{3}$ 
-    & $3.6\times10^{3}$ 
-    & $7.3\times10^{3}$ 
+    & $2.3\times10^{2}$ 
+    & $1.7\times10^{3}$ 
     & $1.4\times10^{4}$ 
-    & $2.8\times10^{4}$ 
-    & $5.6\times10^{4}$ 
-    & $1.1\times10^{5}$ \\
+    & $1.3\times10^{5}$ 
+    & $1.0\times10^{6}$ 
+    & $8.3\times10^{6}$ 
+    & $6.3\times10^{7}$ \\
 \end{tabular}
 \caption{Linear search in an unsorted array: elapsed time per loop (transposed)}
-\label{tab:linear-search-transposed}
+\label{tab:linear-search-unsorted-transposed-newgen}
 \end{center}
 \end{table}
 
-The benchmark result with its regression also shows the same growth trend where doubling the size roughly doubles the elapsed time.
+The benchmark results and their regression analysis exhibit the same growth pattern, showing that increasing the array size by a factor of eight roughly multiplies the elapsed time by the same factor.
 
 \begin{figure}[h]
   \centering
@@ -97,75 +101,7 @@ The benchmark result with its regression also shows the same growth trend where 
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=12cm, height=5cm,
-      grid=major,
-      legend pos=north west,
-      ymajorgrids=true,
-      xmajorgrids=true
-    ]
-      % Benchmark data points
-      \addplot+[
-        mark=*,
-        thick,
-        color=blue
-      ] coordinates {
-        (1024,   9.0e2)
-        (2048,   1.8e3)
-        (4096,   3.6e3)
-        (8192,   7.3e3)
-        (16384,  1.4e4)
-        (32768,  2.8e4)
-        (65536,  5.6e4)
-        (131072, 1.1e5)
-      };
-      \addlegendentry{Measured}
-
-      % Least-squares linear fit: t(n) = a*n + b
-      % a ≈ 0.8399354126, b ≈ 284.5081332
-      \addplot[
-        red,
-        thick,
-        domain=1000:140000,
-        samples=200
-      ] {0.8399354126*x + 284.5081332};
-      \addlegendentry{$t(n) = 0.8399\,n + 284.5$}
-
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Linear search benchmark with least-squares linear fit}
-  \label{fig:linear-search}
-\end{figure}
-
-However, given that the array is stored, a quick optimization can be performed by stopping the search once the next element is larger than the key. Despite early exiting array, the algorithm still has linear time complexity, since the array has to be iterated over fully in worst case scenario when key is larger than any element in the array. On the flip side, the coefficients are smaller, causing the time complexity to increase slower as the array size grows, which is shown in Table 2 and Figure 2.
-
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{l|cccccccc}
-\textbf{Size} 
-    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
-\hline
-\textbf{ns} 
-    & $1.0\times10^{3}$
-    & $2.1\times10^{3}$
-    & $4.2\times10^{3}$
-    & $8.2\times10^{3}$
-    & $1.7\times10^{4}$
-    & $3.2\times10^{4}$
-    & $6.6\times10^{4}$
-    & $1.3\times10^{5}$ \\
-\end{tabular}
-\caption{Linear search in a sorted array: elapsed time per loop (transposed)}
-\label{tab:linear-search-sorted-transposed}
-\end{center}
-\end{table}
-
-\begin{figure}[h]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      xlabel={Array size (elements)},
-      ylabel={Time (ns)},
-      width=12cm, height=5cm,
+      width=12cm, height=6.5cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -177,92 +113,67 @@ However, given that the array is stored, a quick optimization can be performed b
         thick,
         color=blue
       ] coordinates {
-        (1024,   1.0e3)
-        (2048,   2.1e3)
-        (4096,   4.2e3)
-        (8192,   8.2e3)
-        (16384,  1.7e4)
-        (32768,  3.2e4)
-        (65536,  6.6e4)
-        (131072, 1.3e5)
+        (256,      2.3e2)
+        (2048,     1.7e3)
+        (16384,    1.4e4)
+        (131072,   1.3e5)
+        (1048576,  1.0e6)
+        (8388608,  8.3e6)
+        (67108864, 6.3e7)
       };
       \addlegendentry{Measured}
 
       % Least-squares linear fit: t(n) = a*n + b
-      % a ≈ 0.99274406098, b ≈ 159.33384973
+      % a ≈ 0.93842405764, b ≈ 67534.09320
       \addplot[
         red,
         thick,
-        domain=1000:140000,
-        samples=200
-      ] {0.99274406098*x + 159.33384973};
-      \addlegendentry{$t(n) = 0.9927\,n + 159.3$}
+        domain=0:7e7,
+        samples=60
+      ] {0.93842405764*x + 67534.09320};
+      \addlegendentry{$t(n) = 0.938424\,n + 67534.093$}
 
     \end{axis}
   \end{tikzpicture}
-  \caption{Linear search in a sorted array with least-squares linear fit}
-  \label{fig:linear-search-sorted}
+  \caption{Linear search (unsorted) with least-squares linear fit}
+  \label{fig:linear-search-unsorted}
 \end{figure}
 
-\section*{Binary search}
+\subsection*{Sorted array}
 
-\iffalse
-How long time does it take to search through an array of a million entries? It might not sound very much but if our program constantly does search operations it will add up. There are however smarter things we can do and this will allow us to handle much larger data sets in reasonable time.
-
-Re-run your benchmarks but now using the binary search. Report the execution time and describe a function that given the size of the array roughly describes the execution time. How long time does it take to search through an array of one million items? Without running an experiment - how long time do you estimate that it would take to search through an array of 64M items? Give it a try- how well did you estimate the execution time?  + Benchmark statistics table+diagrams, regression and time complexity
-\fi
-
-On the other hand, a binary search starts in the middle of an array. If the element matches the key, the element is found, while its index is returned. Otherwise, the element is compared to the key and repeat the process in right interval if the key is larger than given element and left if key is smaller. Using this approach, half of the elements are eliminated from searching on each iteration, which means only a fraction of element comparison needs to be performed in the array. Searching $n$ elements in an array, only $log_2(n)$ iteration is required with one element comparison in each iteration that takes $a$ time, which gives time function $t(n)=log_2(n)*a$ in $O(log(n))$ time complexity.
+Given that the array is stored, a quick optimization can be performed by stopping the search once the next element is larger than the key. Only one comparison is performed in each loop iteration for consistency with the unsorted search algorithm. Despite an early exiting array, the execution time is only slightly lower than the implementation of an unsorted array. The algorithm still has linear time complexity, since the array has to be fully iterated in the worst case scenario when the key is larger than any element in the array, which is shown in Table 2 and Figure 2.
 
 \begin{minted}{c}
-  unsigned int binary_search(int array[], unsigned int length, int key) {
-      int first = 0;
-      int last = length-1;
-      while (true) {
-          // jump to the middle
-          int index = (first + last)/2;
-          if (array[index] == key) {
-              return index;
+  bool sorted_search(int array[], int length, int key) {
+      for (int index = 0; index < length; index++) {
+          int value = array[index];
+          if (value >= key) {
+              return value == key;
           }
-          if (array[index] < key && index < last) {
-              first = index + 1;
-              continue;
-          }
-          if (array[index] > key && index > first) {
-              last = index - 1;
-              continue;
-          }
-          return UINT_MAX;
       }
+      return false;
   }
 \end{minted}
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{l|cccccccc}
-\textbf{Size}
-    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 & 1000000 & 64000000 \\
+\begin{tabular}{l|ccccccc}
+\textbf{Size} 
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
 \hline
-\textbf{ns}
-    & 54
-    & 69
-    & 73
-    & 92
-    & 97
-    & $1.2\times10^{2}$
-    & $1.3\times10^{2}$
-    & $1.3\times10^{2}$
-    & $2.4\times10^{2}$
-    & $1.1\times10^{3}$ \\
+\textbf{ns} 
+    & $2.8\times10^{2}$
+    & $1.5\times10^{3}$
+    & $1.5\times10^{4}$
+    & $1.2\times10^{5}$
+    & $9.4\times10^{5}$
+    & $7.3\times10^{6}$
+    & $6.0\times10^{7}$ \\
 \end{tabular}
-\caption{Binary search: elapsed time per loop (transposed)}
-\label{tab:binary-search-transposed}
+\caption{Linear search in a sorted array: elapsed time per loop (transposed)}
+\label{tab:linear-search-sorted-transposed}
 \end{center}
 \end{table}
-
-Benchmark results show that for 1M data ...
-
-Measured elapsed time using benchmark shows that an array with 1 million elements takes roughly $2.4\times10^2$ ns. Following the same trend, doubling each element adds on 12 ns to elapsed time, which means that for 64 million elements, the elapsed time is roughly $a\cdot log_2(64\cdot 10^6) = a\cdot log_2(10^6)\cdot 6 = 2.4\cdot10^2\cdot 6 = 1.44\cdot 10^3$ ns. The actual measurement for 64 million elements is $1.1\cdot10^3$ ns, which roughly matches the growth trend. The difference arises because the theoretical model treats comparasions with uniform estimated time while real execution time of each operation may flunctuate.
 
 \begin{figure}[h]
   \centering
@@ -277,36 +188,143 @@ Measured elapsed time using benchmark shows that an array with 1 million element
       xmajorgrids=true
     ]
 
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.8e2)
+        (2048,     1.5e3)
+        (16384,    1.5e4)
+        (131072,   1.2e5)
+        (1048576,  9.4e5)
+        (8388608,  7.3e6)
+        (67108864, 6.0e7)
+      };
+      \addlegendentry{Measured}
+
+      % Least-squares linear fit: t(n) = a*n + b
+      % a ≈ 0.89342, b ≈ 30082.23
+      \addplot[
+        red,
+        thick,
+        domain=0:7e7,
+        samples=60
+      ] {0.89342*x + 30082.23};
+      
+      \addlegendentry{$t(n) = 0.89342\,n + 30082.23$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Linear search (sorted) with least-squares linear fit}
+  \label{fig:linear-search-sorted}
+\end{figure}
+
+\section*{Binary search}
+
+\iffalse
+How long time does it take to search through an array of a million entries? It might not sound very much but if our program constantly does search operations it will add up. There are however smarter things we can do and this will allow us to handle much larger data sets in reasonable time.
+
+Re-run your benchmarks but now using the binary search. Report the execution time and describe a function that given the size of the array roughly describes the execution time. How long time does it take to search through an array of one million items? Without running an experiment - how long time do you estimate that it would take to search through an array of 64M items? Give it a try- how well did you estimate the execution time?  + Benchmark statistics table+diagrams, regression and time complexity
+\fi
+
+On the other hand, a binary search starts in the middle of an array. If the element matches the key, the element is found, while its index is returned. Otherwise, the element is compared to the key and repeat the process in right interval if the key is larger than given element and left if key is smaller. Using this approach, half of the elements are eliminated from searching on each iteration, which means only a fraction of element comparison needs to be performed in the array. Searching $n$ elements in an array, only $log_2(n)$ iteration is required with one element comparison in each iteration that takes $a$ time, which gives time function $t(n)=log_2(n)*a$ in $O(log(n))$ time complexity.
+
+\begin{minted}{c}
+  bool binary_search(int array[], unsigned int length, int key) {
+      if (length == 0) return false;
+      int first = 0;
+      int last = length-1;
+      while (true) {
+          // Potential integer overflow in (first + last)/2,
+          // so change to first + (last - first)/2.
+          int index = first + (last - first)/2;
+          if (array[index] == key) {
+              return true;
+          }
+          if (array[index] < key && index < last) {
+              first = index + 1;
+              continue;
+          }
+          if (array[index] > key && index > first) {
+              last = index - 1;
+              continue;
+          }
+          return false;
+      }
+  }
+\end{minted}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
+\hline
+\textbf{ns}
+    & 65
+    & 85
+    & $1.1\times10^{2}$
+    & $1.4\times10^{2}$
+    & $3.2\times10^{2}$
+    & $8.3\times10^{2}$
+    & $1.4\times10^{3}$ \\
+\end{tabular}
+\caption{Binary search: elapsed time per loop (transposed)}
+\label{tab:binary-search-transposed-new3}
+\end{center}
+\end{table}
+
+Measured benchmark results show that searching an array with $1\,048\,576$ (approximately $10^6$) elements takes roughly $3.2\times10^2$~ns. Increasing the array size from $131\,072$ to $1\,048\,576$ elements (a factor of eight) increases the elapsed time by approximately $180$~ns, which corresponds to three additional binary search iterations.
+
+Since binary search requires $\log_2(n)$ iterations, each double the array size adds an additional comparison step with an approximately constant cost. Increasing the array size to $64$ million elements ($\approx 2^6 \times 10^6$) adds six additional iterations, which estimates the execution time of $a \cdot \log_2(64 \cdot 10^6) \approx 6.8\times10^2$~ns.
+
+The measured execution time for $64$ million elements is $1.1\times10^3$~ns, which doesn't match the expected logarithmic growth trend. The main reason is that the theoretical model assumes a uniform cost per comparison, where in practice the execution time is influenced by cache and TLB effects at large input sizes, which are shown in Table 3 and Figure 3.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
       % Measured data
       \addplot+[
         mark=*,
         thick,
         color=blue
       ] coordinates {
-        (1024,   54)
-        (2048,   69)
-        (4096,   73)
-        (8192,   92)
-        (16384,  97)
-        (32768,  120)
-        (65536,  130)
-        (131072, 130)
+        (256,      65)
+        (2048,     85)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  830)
+        (67108864, 1400)
       };
       \addlegendentry{Measured}
 
-      % Fitted curve: t(n) = 10.535 log2(n) - 52.696
+      % Improved weighted log2 regression:
+      % t(n) = 73.52 * log2(n) - 230.41
       \addplot[
         red,
         thick,
-        domain=1000:140000,
-        samples=200
-      ] {10.535*(ln(x)/ln(2)) - 52.696};
-      \addlegendentry{$t(n)=10.535\,\log_2 n - 52.696$}
+        domain=1000:7e7,
+        samples=60
+      ] {97.983*ln(x) - 733.15};
+      \addlegendentry{$t(n)=67.92\,\log_{2}n - 733.15$}
 
     \end{axis}
   \end{tikzpicture}
-  \caption{Binary search benchmark with $\log_2 n$ least-squares fit}
-  \label{fig:binary-search}
+  \caption{Binary search: improved $\log_2 n$ regression fitting the measured data}
+  \label{fig:binary-search-improved}
 \end{figure}
 
 
@@ -325,82 +343,97 @@ Discussing overhead beyond stack depth
 The binary search algorithm can also be implemented using recursion. The only difference between recursive implementation and non-recursive one is that every iteration in the while loop is swapped to a recursive function call in recursive implementation, which narrows the search interval until a key is found.
 
 \begin{minted}{c}
-  unsigned int recursive_binary_search(
+  bool recursive_binary_search(
       int array[],
-      unsigned int length,
       int key,
       unsigned int first,
       unsigned int last
   ) {
       if (first > last)
-          return UINT_MAX;
+          return false;
   
-      unsigned int index = (first + last) / 2;
+      unsigned int index = first + (last - first) / 2;
   
       if (array[index] == key)
-          return index;
+          return true;
   
       if (array[index] < key)
-          return recursive_binary_search(array, length, key, index + 1, last);
+          return recursive_binary_search(array, key, index + 1, last);
   
-      return recursive_binary_search(array, length, key, first, index - 1);
+      return recursive_binary_search(array, key, first, index - 1);
   }
-  
 \end{minted}
 
-The benchmark shows the same logarithmic time growth, since the elapsed time is similar. Since recursive binary search add up recursive calls, the elapsed time and memory consumption may be slightly higher than non-recursive one. In recursive binary search, the recursive calls are $\left \lfloor{\log_2(n)}\right \rfloor + 1 $ for array size $n$. The table shows amount of recursive calls.
+The benchmark shows the same logarithmic time growth, since the elapsed time is similar. Since recursive binary search add up recursive calls, the elapsed time and memory consumption may be slightly higher than non-recursive one. In recursive binary search, the recursive calls are $\left \lfloor{\log_2(n)}\right \rfloor + 1 $ for array size $n$.
 
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{l|cccccccc}
+\begin{tabular}{l|ccccccc}
 \textbf{Size}
-    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+    & 256 & 2048 & 16384 & 131072 & 1048576 & 8388608 & 67108864 \\
 \hline
 \textbf{ns}
-    & 56
-    & 76
-    & 83
-    & 94
-    & 95
+    & 60
+    & 82
     & $1.1\times10^{2}$
-    & $1.3\times10^{2}$
-    & $1.4\times10^{2}$ \\
+    & $1.4\times10^{2}$
+    & $3.2\times10^{2}$
+    & $8.6\times10^{2}$
+    & $1.4\times10^{3}$ \\
 \end{tabular}
 \caption{Recursive binary search: elapsed time per loop (transposed)}
-\label{tab:recursive-binary-search-transposed}
+\label{tab:recursive-binary-search-transposed-new4}
 \end{center}
 \end{table}
 
-Size	Calls
-1024	11
-2048	12
-4096	13
-…	…
-1,000,000	20
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=12cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
 
+      % Measured data points
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      60)
+        (2048,     82)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  860)
+        (67108864, 1400)
+      };
+      \addlegendentry{Measured}
+
+      % Improved weighted log2 regression:
+      % t(n) = 76.81 * log2(n) - 242.15
+      \addplot[
+        red,
+        thick,
+        domain=1000:7e7,
+        samples=60
+      ] {99.374*ln(x) - 746.4};
+      \addlegendentry{$t(n)=68.88\,\log_{2}n - 242.15$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Recursive binary search: improved $\log_2 n$ regression fitting the measured data}
+  \label{fig:recursive-binary-search}
+\end{figure}
+
+\subsection*{Recursive stack depth}
 The stack depth in binary search doesn't cause stack overflow, since even for 64M elements. Instead the recursive depth is only $\left \lfloor{\log_2(64\cdot 10^6)}\right \rfloor + 1 = 27$ stacks, which is trivial for most system.
-
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{l|cccccccc}
-\textbf{Size}
-    & 1024 & 2048 & 4096 & 8192 & 16384 & 32768 & 65536 & 131072 \\
-\hline
-\textbf{ns}
-    & 56
-    & 76
-    & 83
-    & 94
-    & 95
-    & $1.1\times10^{2}$
-    & $1.3\times10^{2}$
-    & $1.4\times10^{2}$ \\
-\end{tabular}
-\caption{Recursive binary search: elapsed time per loop (transposed)}
-\label{tab:recursive-binary-search-transposed}
-\end{center}
-\end{table}
 
 The recursive version is slower by a small constant factor due to recursive function call overhead, even though both share the same $O(\log(n))$ complexity.
 
@@ -408,7 +441,7 @@ The recursive version is slower by a small constant factor due to recursive func
 \begin{center}
 \begin{tabular}{l|cccccccc}
 \textbf{Size} 
-    & 1000 & 2000 & 4000 & 8000 & 16000 & 32000 & 64000 & 10^6 \\
+    & 1000 & 2000 & 4000 & 8000 & 16000 & 32000 & 64000 & $10^6$ \\
 \hline
 \textbf{Recursive calls} 
     & 10--11 
@@ -433,12 +466,153 @@ The recursive version is slower by a small constant factor due to recursive func
 Differences in time complexity function between unsorted search and sorted search, as well as recursive and iterative performance
 \fi
 
-The conclusion shows that sorted binary search is usually orders of magnitudes faster than linear search.
+\noindent
+The results show that binary search is orders of magnitude faster than linear search (see Figure~\ref{fig:search-comparison-all}).
 
-Both unsorted and sorted linear search are $O(n)$ time complexity which has similar growth trend with mostly similar execution time, which can be confirmed using linear regression. To some extent, sorted linear search could improve benchmark performance if the key is relatively small, since array iteration can be exited early, but the optimization is tiny and still take time complexity in other places. 
+\medskip
+\noindent
+Both unsorted and sorted linear search have an $O(n)$ time complexity and exhibit similar growth behavior, which is confirmed by linear regression. Sorted linear search may terminate early if the key is small, but the improvement is minor and does not change its overall $O(n)$ cost.
 
-Binary search algorithm overall outperforms both unsorted linear search and early-exit linear search in sorted arrays in terms of execution time. The main reason is that only a fraction of array element is compared during searching process. During the program, half of array is eliminated in each iteration, instead of iterating through each element. In this case, the algorithm takes only a fraction of execution time compared to linear search, which is roughly logarithmic amount of execution time of linear search $O(log(n)), considering that binary search is usually roughly thousand times faster than both linear search versions.
+\medskip
+\noindent
+Binary search significantly outperforms both linear variants because it compares only a small fraction of the elements: each step eliminates half of the remaining array. As a result, its running time grows logarithmically, making it thousands of times faster than linear search in practice.
 
-Both iterative and recursive binary search has identical $O(log(n))$ complexity, but recursive version faces additional performance overhead due to function call overhead and additional stack usage. However, practically it's not a concern unless running in performance-heavy tight loops where tiny overhead adds up.
+\medskip
+\noindent
+Iterative and recursive binary search share the same $O(\log n)$ complexity. The recursive version incurs additional overhead due to function calls and stack usage, but this difference is negligible unless used in performance\mbox{-}critical tight loops.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ==========================================================
+      % Linear search (unsorted)
+      % ==========================================================
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (256,      2.3e2)
+        (2048,     1.7e3)
+        (16384,    1.4e4)
+        (131072,   1.3e5)
+        (1048576,  1.0e6)
+        (8388608,  8.3e6)
+        (67108864, 6.3e7)
+      };
+      \addlegendentry{Linear (unsorted) — measured}
+
+      % Fit: a = 0.938424, b = 67534.093
+      \addplot[
+        blue,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {0.938424*x + 67534.093};
+      \addlegendentry{Linear (unsorted) — fit}
+
+      % ==========================================================
+      % Linear search (sorted)
+      % ==========================================================
+      \addplot+[
+        mark=square*,
+        thick,
+        color=green!60!black
+      ] coordinates {
+        (256,      2.8e2)
+        (2048,     1.5e3)
+        (16384,    1.5e4)
+        (131072,   1.2e5)
+        (1048576,  9.4e5)
+        (8388608,  7.3e6)
+        (67108864, 6.0e7)
+      };
+      \addlegendentry{Linear (sorted) — measured}
+
+      % Fit: a = 0.89342, b = 30082.23
+      \addplot[
+        green!60!black,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {0.89342*x + 30082.23};
+      \addlegendentry{Linear (sorted) — fit}
+
+      % ==========================================================
+      % Binary search
+      % ==========================================================
+      \addplot+[
+        mark=triangle*,
+        thick,
+        color=red
+      ] coordinates {
+        (256,      65)
+        (2048,     85)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  830)
+        (67108864, 1400)
+      };
+      \addlegendentry{Binary — measured}
+
+      % Improved log2 fit: a = 73.52, b = -230.41
+      \addplot[
+        red,
+        densely dashed,
+        thick,
+        domain=200:7.5e7,
+        samples=300
+      ] {73.52*(ln(x)/ln(2)) - 230.41};
+      \addlegendentry{Binary — fit}
+
+      % ==========================================================
+      % Recursive binary search
+      % ==========================================================
+      \addplot+[
+        mark=diamond*,
+        thick,
+        color=purple
+      ] coordinates {
+        (256,      60)
+        (2048,     82)
+        (16384,    110)
+        (131072,   140)
+        (1048576,  320)
+        (8388608,  860)
+        (67108864, 1400)
+      };
+      \addlegendentry{Recursive binary — measured}
+
+      % Recursive binary improved log2 fit: a = 76.81, b = -242.15
+      \addplot[
+        purple,
+        densely dashed,
+        thick,
+        domain=200:1e7,
+        samples=60
+      ] {76.81*(ln(x)/ln(2)) - 242.15};
+      \addlegendentry{Recursive binary — fit}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Comparison of linear (unsorted), linear (sorted), binary, and recursive binary search algorithms}
+  \label{fig:search-comparison-all}
+\end{figure}
+
+
+
 
 \end{document}

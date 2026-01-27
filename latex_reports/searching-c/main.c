@@ -7,14 +7,18 @@
 
 
 int *unsorted_array_new(int n){
+    if (n <= 0) return NULL;
     int *array = (int*) malloc(n*sizeof(int));
+    if (array == NULL) return NULL;
     for (int i = 0; i < n; i++)
         array[i] = rand()%(n*2);
     return array;
 }
 
 int *sorted_array_new(int n) {
+    if (n <= 0) return NULL;
     int *array = (int*)malloc(n*sizeof(int));
+    if (array == NULL) return NULL;
     int nxt = 0;
     for (int i = 0; i < n ; i++) {
         nxt += rand()%10 + 1;
@@ -29,24 +33,35 @@ void array_destroy(int *array){
     }
 }
 
-unsigned int unsorted_search(int array[], unsigned int length, int key) {
+bool unsorted_search(int array[], int length, int key) {
     for (int index = 0; index < length; index++) {
         if (array[index] == key) {
-            return index;
+            return true;
         }
     }
-    return UINT_MAX;
+    return false;
+}
+
+bool sorted_search(int array[], int length, int key) {
+    for (int index = 0; index < length; index++) {
+        int value = array[index];
+        if (value >= key) {
+            return value == key;
+        }
+    }
+    return false;
 }
 
 
-unsigned int binary_search(int array[], unsigned int length, int key) {
+bool binary_search(int array[], unsigned int length, int key) {
+    if (length == 0) return false;
     int first = 0;
     int last = length-1;
     while (true) {
         // jump to the middle
-        int index = (first + last)/2;
+        int index = first + (last - first)/2;
         if (array[index] == key) {
-            return index;
+            return true;
         }
         if (array[index] < key && index < last) {
             first = index + 1;
@@ -56,62 +71,80 @@ unsigned int binary_search(int array[], unsigned int length, int key) {
             last = index - 1;
             continue;
         }
-        return UINT_MAX;
+        return false;
     }
 }
 
-unsigned int recursive_binary_search(
+bool recursive_binary_search(
     int array[],
-    unsigned int length,
     int key,
     unsigned int first,
     unsigned int last
 ) {
     if (first > last)
-        return UINT_MAX;
+        return false;
 
-    unsigned int index = (first + last) / 2;
+    unsigned int index = first + (last - first) / 2;
 
     if (array[index] == key)
-        return index;
+        return true;
 
     if (array[index] < key)
-        return recursive_binary_search(array, length, key, index + 1, last);
+        return recursive_binary_search(array, key, index + 1, last);
 
-    return recursive_binary_search(array, length, key, first, index - 1);
+    return recursive_binary_search(array, key, first, index - 1);
 }
 
-unsigned int wrapped_recursive_binary_search(int array[], unsigned int length, int key){
-    return recursive_binary_search(array, length, key, 0, length-1);
+bool wrapped_recursive_binary_search(int array[], unsigned int length, int key){
+    if (length == 0) return false;
+    return recursive_binary_search(array, key, 0, length-1);
 }
 
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
 }
 
-double benchmark_search(int n, int *(*create)(int),unsigned int search(int[], unsigned int, int)) {
-    srand(time(NULL));
+double benchmark_search(int n, int *(*create)(int), bool search(int[], unsigned int, int)) {
+    if (n <= 0) {
+        fprintf(stderr, "Error: n must be positive\n");
+        return -1.0;
+    }
+
     int loops = 1024;
 
     int *array = create(n);
-    int *keys  = malloc(loops * sizeof(int));
+    if (array == NULL) {
+        fprintf(stderr, "Failed to allocate array\n");
+        return -1.0;
+    }
+
+    int *keys = malloc(loops * sizeof(int));
+    if (keys == NULL) {
+        fprintf(stderr, "Failed to allocate keys array\n");
+        array_destroy(array);
+        return -1.0;
+    }
 
     for (int i = 0; i < loops; i++)
         keys[i] = array[rand() % n];
 
     struct timespec start, stop;
-    volatile int hits = 0;
+    int hits = 0;
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     for (int i = 0; i < loops; i++) {
-        int result = search(array, n, keys[i]);
-        if (result != UINT_MAX){
+        bool result = search(array, n, keys[i]);
+        if (result) {
             hits++;
         }
     }
 
     clock_gettime(CLOCK_MONOTONIC, &stop);
+
+    if (hits < 0) {
+        printf("Impossible\n");
+    }
 
     free(keys);
     array_destroy(array);
@@ -124,7 +157,7 @@ double benchmark_linear_search(int n){
 }
 
 double benchmark_sorted_linear_search(int n){
-    return benchmark_search(n, sorted_array_new, unsorted_search);
+    return benchmark_search(n, sorted_array_new, sorted_search);
 }
 
 double benchmark_binary_search(int n){
@@ -137,8 +170,8 @@ double benchmark_recursive_binary_search(int n){
 
 
 void run_benchmark(double benchmark_function(int)) {
-    int SIZE_LENGTH = 10;
-    int sizes[] = {1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 1000000, 64000000};
+    int SIZE_LENGTH = 7;
+    int sizes[] = {256, 2048, 16384, 131072, 1048576, 8388608, 67108864};
     int trials = 16;
     for (int i = 0; i < SIZE_LENGTH; i++) {
         int size = sizes[i];
@@ -170,7 +203,9 @@ void run_benchmark(double benchmark_function(int)) {
 }
 
 int main() {
-    run_benchmark(benchmark_binary_search);
+    srand(time(NULL));
+    // run_benchmark(benchmark_binary_search);
+    run_benchmark(benchmark_recursive_binary_search);
     
     /*
     int array[] = {1, 2, 5, 12, 17, 18, 21};
