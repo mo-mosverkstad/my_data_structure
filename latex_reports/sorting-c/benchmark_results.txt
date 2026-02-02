@@ -86,6 +86,321 @@ Array size: 16384, ELAPSED TIME PER LOOP: 1.5e+08 ns
 Array size: 32768, ELAPSED TIME PER LOOP: 5.9e+08 ns
 Array size: 65535, ELAPSED TIME PER LOOP: 2.4e+09 ns
 
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
+\hline
+\textbf{ns}
+    & $6.9\times10^{5}$
+    & $2.3\times10^{6}$
+    & $9.3\times10^{6}$
+    & $3.7\times10^{7}$
+    & $1.5\times10^{8}$
+    & $5.9\times10^{8}$
+    & $2.4\times10^{9}$ \\
+\end{tabular}
+\caption{Insertion sort: elapsed time per loop (transposed)}
+\label{tab:insertion-sort-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured Data
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,     6.9e5)
+        (2048,     2.3e6)
+        (4196,     9.3e6)
+        (8192,     3.7e7)
+        (16384,    1.5e8)
+        (32768,    5.9e8)
+        (65535,    2.4e9)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Quadratic regression: t(n) = a*n^2 + b*n + c
+      % a = 0.5655664452, b = -478.9505335, c = 1.805852688e6
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:70000,   % restrict to data range for speed
+        samples=60           % smooth enough, avoids timeout
+      ] {0.5655664452*x^2 - 478.9505335*x + 1.805852688e6};
+      \addlegendentry{$t(n)=0.565566\,n^{2} - 478.951\,n + 1.806\times10^{6}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Insertion sort benchmark with least-squares quadratic regression}
+  \label{fig:insertion-sort}
+\end{figure}
+
+
+Merge Sort:
+Array size:  1024, ELAPSED TIME PER LOOP: 1.1e+05 ns
+Array size:  2048, ELAPSED TIME PER LOOP: 2.3e+05 ns
+Array size:  4196, ELAPSED TIME PER LOOP: 4.5e+05 ns
+Array size:  8192, ELAPSED TIME PER LOOP: 9.1e+05 ns
+Array size: 16384, ELAPSED TIME PER LOOP: 2.0e+06 ns
+Array size: 32768, ELAPSED TIME PER LOOP: 4.3e+06 ns
+Array size: 65535, ELAPSED TIME PER LOOP: 9.4e+06 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
+\hline
+\textbf{ns}
+    & $1.1\times10^{5}$
+    & $2.3\times10^{5}$
+    & $4.5\times10^{5}$
+    & $9.1\times10^{5}$
+    & $2.0\times10^{6}$
+    & $4.3\times10^{6}$
+    & $9.4\times10^{6}$ \\
+\end{tabular}
+\caption{Merge sort: elapsed time per loop (transposed)}
+\label{tab:mergesort-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured data
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,     1.1e5)
+        (2048,     2.3e5)
+        (4196,     4.5e5)
+        (8192,     9.1e5)
+        (16384,    2.0e6)
+        (32768,    4.3e6)
+        (65535,    9.4e6)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Improved regression:
+      % t(n) = a*n*log2(n) + b*n + c
+      % a = 12.4848689709, b = -57.2304548517, c = 55401.3997885
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:70000,   % restrict to data range for speed
+        samples=60
+      ]
+      {12.4848689709 * x * (ln(x)/ln(2)) + (-57.2304548517) * x + 55401.3997885};
+      \addlegendentry{$t(n)=12.485\,n\log_{2}n - 57.23\,n + 5.54\times10^{4}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Merge sort benchmark with improved $n\log n$ regression (tail-aligned)}
+  \label{fig:mergesort}
+\end{figure}
+
+
+Quick Sort:
+Array size:  1024, ELAPSED TIME PER LOOP: 9.9e+04 ns
+Array size:  2048, ELAPSED TIME PER LOOP: 2.1e+05 ns
+Array size:  4196, ELAPSED TIME PER LOOP: 4.3e+05 ns
+Array size:  8192, ELAPSED TIME PER LOOP: 9.1e+05 ns
+Array size: 16384, ELAPSED TIME PER LOOP: 1.9e+06 ns
+Array size: 32768, ELAPSED TIME PER LOOP: 4.3e+06 ns
+Array size: 65535, ELAPSED TIME PER LOOP: 9.2e+06 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
+\hline
+\textbf{ns}
+    & $9.9\times10^{4}$
+    & $2.1\times10^{5}$
+    & $4.3\times10^{5}$
+    & $9.1\times10^{5}$
+    & $1.9\times10^{6}$
+    & $4.3\times10^{6}$
+    & $9.2\times10^{6}$ \\
+\end{tabular}
+\caption{Quick sort: elapsed time per loop (transposed)}
+\label{tab:quicksort-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured data
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,     9.9e4)
+        (2048,     2.1e5)
+        (4196,     4.3e5)
+        (8192,     9.1e5)
+        (16384,    1.9e6)
+        (32768,    4.3e6)
+        (65535,    9.2e6)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Improved regression:
+      % t(n) = a*n*log2(n) + b*n + c
+      % a = 11.0996381095, b = -37.4339527432, c = 2.49031e4
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:70000,   % restrict to data range for speed
+        samples=60           % smooth enough, avoids timeout
+      ]
+      {11.0996381095 * x * (ln(x)/ln(2)) + (-37.4339527432) * x + 2.49031e4};
+      \addlegendentry{$t(n)=11.0996\,n\log_{2}n \;-\; 37.434\,n \;+\; 2.49\times10^{4}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Quick sort benchmark with improved $n\log n$ regression (tail-aligned)}
+  \label{fig:quicksort}
+\end{figure}
+
+
+Simple Merge Sort:
+Array size:  1024, ELAPSED TIME PER LOOP: 9.4e+04 ns
+Array size:  2048, ELAPSED TIME PER LOOP: 1.9e+05 ns
+Array size:  4196, ELAPSED TIME PER LOOP: 3.8e+05 ns
+Array size:  8192, ELAPSED TIME PER LOOP: 7.2e+05 ns
+Array size: 16384, ELAPSED TIME PER LOOP: 1.6e+06 ns
+Array size: 32768, ELAPSED TIME PER LOOP: 3.4e+06 ns
+Array size: 65535, ELAPSED TIME PER LOOP: 7.8e+06 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
+\hline
+\textbf{ns}
+    & $9.4\times10^{4}$
+    & $1.9\times10^{5}$
+    & $3.8\times10^{5}$
+    & $7.2\times10^{5}$
+    & $1.6\times10^{6}$
+    & $3.4\times10^{6}$
+    & $7.8\times10^{6}$ \\
+\end{tabular}
+\caption{Simple merge sort: elapsed time per loop (transposed)}
+\label{tab:simple-mergesort-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured data
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,     9.4e4)
+        (2048,     1.9e5)
+        (4196,     3.8e5)
+        (8192,     7.2e5)
+        (16384,    1.6e6)
+        (32768,    3.4e6)
+        (65535,    7.8e6)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Improved regression:
+      % t(n) = a*n*log2(n) + b*n + c
+      % a = 14.4834478744, b = -114.551055308, c = 1.02324e5
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:70000,   % restrict to data range for speed
+        samples=60
+      ]
+      {14.4834478744 * x * (ln(x)/ln(2)) + (-114.551055308) * x + 1.02324e5};
+      \addlegendentry{$t(n)=14.4834\,n\log_{2}n - 114.551\,n + 1.02\times10^{5}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Simple merge sort benchmark with improved $n\log n$ regression (tail-aligned)}
+  \label{fig:simple-mergesort}
+\end{figure}
 
 
 
