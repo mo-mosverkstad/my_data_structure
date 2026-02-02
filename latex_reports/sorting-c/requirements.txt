@@ -1,0 +1,5 @@
+searching algorithms
+
+
+For each of the algorithms you should explain the
+run time as a function of the size of the array
