@@ -1,0 +1,452 @@
+Selection Sort:
+Array size:  1024, ELAPSED TIME PER LOOP: 1.1e+06 ns
+Array size:  2048, ELAPSED TIME PER LOOP: 4.6e+06 ns
+Array size:  4196, ELAPSED TIME PER LOOP: 1.9e+07 ns
+Array size:  8192, ELAPSED TIME PER LOOP: 6.9e+07 ns
+Array size: 16384, ELAPSED TIME PER LOOP: 2.8e+08 ns
+Array size: 32768, ELAPSED TIME PER LOOP: 1.2e+09 ns
+Array size: 65535, ELAPSED TIME PER LOOP: 4.6e+09 ns
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
+\hline
+\textbf{ns}
+    & $1.1\times10^{6}$
+    & $4.6\times10^{6}$
+    & $1.9\times10^{7}$
+    & $6.9\times10^{7}$
+    & $2.8\times10^{8}$
+    & $1.2\times10^{9}$
+    & $4.6\times10^{9}$ \\
+\end{tabular}
+\caption{Selection sort: elapsed time per loop (transposed)}
+\label{tab:selection-sort-transposed}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Array size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=8cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured data
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,     1.1e6)
+        (2048,     4.6e6)
+        (4196,     1.9e7)
+        (8192,     6.9e7)
+        (16384,    2.8e8)
+        (32768,    1.2e9)
+        (65535,    4.6e9)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Quadratic fit: t(n) = 1.07 n^2
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:70000,
+        samples=40
+      ] {1.07 * x^2};
+      \addlegendentry{$t(n)=1.07\,n^{2}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Selection sort benchmark with quadratic regression}
+  \label{fig:selection-sort}
+\end{figure}
+
+
+Insertion Sort:
+Array size:  1024, ELAPSED TIME PER LOOP: 6.9e+05 ns
+Array size:  2048, ELAPSED TIME PER LOOP: 2.3e+06 ns
+Array size:  4196, ELAPSED TIME PER LOOP: 9.3e+06 ns
+Array size:  8192, ELAPSED TIME PER LOOP: 3.7e+07 ns
+Array size: 16384, ELAPSED TIME PER LOOP: 1.5e+08 ns
+Array size: 32768, ELAPSED TIME PER LOOP: 5.9e+08 ns
+Array size: 65535, ELAPSED TIME PER LOOP: 2.4e+09 ns
+
+
+
+
+========
+Below is a **complete solution pack** for the assignment **“Sorting an array in C”** (ID1021). It includes:
+
+*   Clean C implementations of **selection sort**, **insertion sort**, **merge sort (standard aux‑buffer)**, and the **“ping‑pong” merge sort** optimization suggested in the brief. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   A **robust benchmarking harness** using a POSIX monotonic clock, reporting the **minimum** time across repeated trials (to reduce OS jitter).
+*   Guidance on **complexity**, **when insertion shines**, and **why merge sort is stable vs. quicksort** (as discussed in the assignment). [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   Ready‑to‑use **LaTeX/pgfplots** snippets to visualize results.
+
+> The implementation follows the algorithms and structure described in the PDF: selection sort (scan rest, select minimum, swap), insertion sort (insert the current element into the sorted prefix), and merge sort with an auxiliary array using recursion and a merging step. It also implements the “clever trick” to **toggle input/output arrays in recursive calls** to limit copying. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+## 1) Build & Run
+
+Save the following as `sorting_bench.c`, compile, and run:
+
+```bash
+# Linux/macOS (POSIX):
+gcc -O2 -std=c11 sorting_bench.c -o sorting_bench
+
+# If you see clock_gettime linking errors on very old glibc:
+# gcc -O2 -std=c11 sorting_bench.c -o sorting_bench -lrt
+
+./sorting_bench > results.csv
+```
+
+> We enable `CLOCK_MONOTONIC` via `_POSIX_C_SOURCE` and measure **minimum** of `k` repeats per size, matching prior ID1021 timing guidance. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+## 2) Full C Implementation (algorithms + benchmarking)
+
+```c
+// sorting_bench.c
+// ID1021: Sorting an array in C — selection, insertion, mergesort (+ ping-pong), with benchmarking.
+// The program prints CSV lines: algo,n,ns_total,min_trials
+// Build: gcc -O2 -std=c11 sorting_bench.c -o sorting_bench
+// Note: On very old systems you might need: -lrt for clock_gettime
+
+#define _POSIX_C_SOURCE 200809L
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <limits.h>
+#include <stdbool.h>
+
+// ----------------- timing -----------------
+static inline long nano_seconds(const struct timespec* a, const struct timespec* b) {
+    return (b->tv_nsec - a->tv_nsec) + (b->tv_sec - a->tv_sec) * 1000000000L;
+}
+
+static inline long now_ns() {
+    struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t);
+    return (long)t.tv_sec * 1000000000L + t.tv_nsec;
+}
+
+// ----------------- utilities -----------------
+static inline void swap_int(int *a, int *b) { int t = *a; *a = *b; *b = t; }
+
+static bool is_sorted(const int *a, int n) {
+    for (int i = 1; i < n; i++) if (a[i-1] > a[i]) return false;
+    return true;
+}
+
+static int* new_rand_array(int n) {
+    int *a = (int*)malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) a[i] = rand(); // allow duplicates; that’s fine for these sorts
+    return a;
+}
+
+static int* copy_array(const int *src, int n) {
+    int *dst = (int*)malloc(n * sizeof(int));
+    memcpy(dst, src, n * sizeof(int));
+    return dst;
+}
+
+// For insertion best/worst-case demos
+static int* new_nearly_sorted(int n, int k_swaps) {
+    int *a = (int*)malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) a[i] = i;
+    // do k random adjacent swaps
+    for (int k = 0; k < k_swaps && n > 1; k++) {
+        int i = rand() % (n-1);
+        swap_int(&a[i], &a[i+1]);
+    }
+    return a;
+}
+
+static int* new_reverse_sorted(int n) {
+    int *a = (int*)malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) a[i] = n - 1 - i;
+    return a;
+}
+
+// ----------------- selection sort -----------------
+// As described: for i from 0..n-2, find smallest from i..n-1 and swap with a[i].
+void selection_sort(int *a, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int min_idx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (a[j] < a[min_idx]) min_idx = j;
+        }
+        if (min_idx != i) swap_int(&a[i], &a[min_idx]);
+    }
+}
+
+// ----------------- insertion sort -----------------
+// Insert a[i] into the sorted prefix a[0..i-1] by shifting until correct place is found.
+void insertion_sort(int *a, int n) {
+    for (int i = 1; i < n; i++) {
+        int key = a[i];
+        int j = i - 1;
+        while (j >= 0 && a[j] > key) { a[j+1] = a[j]; j--; }
+        a[j+1] = key;
+    }
+}
+
+// ----------------- merge sort (standard aux buffer) -----------------
+static void merge_range(int *org, int *aux, int lo, int mid, int hi) {
+    // Copy org[lo..hi] -> aux[lo..hi]
+    for (int i = lo; i <= hi; i++) aux[i] = org[i];
+
+    int i = lo;      // left part index
+    int j = mid + 1; // right part index
+    for (int k = lo; k <= hi; k++) {
+        if (i > mid)               org[k] = aux[j++];      // left exhausted
+        else if (j > hi)           org[k] = aux[i++];      // right exhausted
+        else if (aux[i] <= aux[j]) org[k] = aux[i++];      // left smaller
+        else                       org[k] = aux[j++];      // right smaller
+    }
+}
+
+static void mergesort_rec(int *org, int *aux, int lo, int hi) {
+    if (lo >= hi) return;
+    int mid = lo + (hi - lo)/2;
+    mergesort_rec(org, aux, lo, mid);
+    mergesort_rec(org, aux, mid+1, hi);
+    // If already in order, skip merge to save time
+    if (org[mid] <= org[mid+1]) return;
+    merge_range(org, aux, lo, mid, hi);
+}
+
+void mergesort(int *a, int n) {
+    if (n <= 1) return;
+    int *aux = (int*)malloc(n * sizeof(int));
+    mergesort_rec(a, aux, 0, n-1);
+    free(aux);
+}
+
+// ----------------- ping-pong merge sort (toggle arrays) -----------------
+// The idea: keep two arrays (src,dst). At each recursive layer, swap roles.
+// This reduces extra copying inside merge, as suggested in the assignment.
+static void mergesort_pingpong_rec(int *dst, int *src, int lo, int hi) {
+    if (lo == hi) { dst[lo] = src[lo]; return; }
+    int mid = lo + (hi - lo)/2;
+    // Sort into dst by recursively sorting halves FROM src TO dst but toggling roles
+    mergesort_pingpong_rec(src, dst, lo, mid);
+    mergesort_pingpong_rec(src, dst, mid+1, hi);
+
+    // Now merge from src (already sorted halves) into dst
+    int i = lo, j = mid+1;
+    for (int k = lo; k <= hi; k++) {
+        if (i > mid)               dst[k] = src[j++];
+        else if (j > hi)           dst[k] = src[i++];
+        else if (src[i] <= src[j]) dst[k] = src[i++];
+        else                       dst[k] = src[j++];
+    }
+}
+
+void mergesort_pingpong(int *a, int n) {
+    if (n <= 1) return;
+    int *aux = (int*)malloc(n * sizeof(int));
+    // copy original data into aux
+    memcpy(aux, a, n * sizeof(int));
+    // After recursion, the final result ends up in 'a'
+    mergesort_pingpong_rec(a, aux, 0, n-1);
+    free(aux);
+}
+
+// ----------------- benchmarking -----------------
+typedef enum { ALG_SELECTION, ALG_INSERTION, ALG_MERGE, ALG_PP_MERGE } algo_t;
+
+const char* algo_name(algo_t t) {
+    switch(t) {
+        case ALG_SELECTION: return "selection";
+        case ALG_INSERTION: return "insertion";
+        case ALG_MERGE:     return "mergesort";
+        case ALG_PP_MERGE:  return "mergesort_pingpong";
+        default: return "unknown";
+    }
+}
+
+long bench_once(algo_t alg, const int *src, int n) {
+    int *a = copy_array(src, n);
+
+    struct timespec t1, t2;
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    switch (alg) {
+        case ALG_SELECTION: selection_sort(a, n); break;
+        case ALG_INSERTION: insertion_sort(a, n); break;
+        case ALG_MERGE:     mergesort(a, n); break;
+        case ALG_PP_MERGE:  mergesort_pingpong(a, n); break;
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+
+    long ns = nano_seconds(&t1, &t2);
+    // sanity check
+    if (!is_sorted(a, n)) {
+        fprintf(stderr, "ERROR: %s did not sort correctly for n=%d\n", algo_name(alg), n);
+        exit(2);
+    }
+    free(a);
+    return ns;
+}
+
+long bench_min(algo_t alg, const int *src, int n, int trials) {
+    long best = LONG_MAX;
+    for (int t = 0; t < trials; t++) {
+        long ns = bench_once(alg, src, n);
+        if (ns < best) best = ns;
+    }
+    return best;
+}
+
+int main(void) {
+    // reproducible
+    srand(42);
+
+    // Geometric sizes (you can adjust the range if needed)
+    int sizes[] = {1024, 2048, 4096, 8192, 16384, 32768}; // keep moderate to avoid very long selection/insertion
+    int nsizes = sizeof(sizes)/sizeof(sizes[0]);
+    int trials = 5;  // minimum-of-k to reduce jitter
+
+    printf("algo,n,ns_total,min_of_k\n");
+
+    for (int si = 0; si < nsizes; si++) {
+        int n = sizes[si];
+        int *base = new_rand_array(n);
+
+        // O(n^2) sorts
+        long sel_ns = bench_min(ALG_SELECTION, base, n, trials);
+        printf("%s,%d,%ld,%d\n", algo_name(ALG_SELECTION), n, sel_ns, trials); fflush(stdout);
+
+        long ins_ns = bench_min(ALG_INSERTION, base, n, trials);
+        printf("%s,%d,%ld,%d\n", algo_name(ALG_INSERTION), n, ins_ns, trials); fflush(stdout);
+
+        // O(n log n) sorts
+        long m_ns = bench_min(ALG_MERGE, base, n, trials);
+        printf("%s,%d,%ld,%d\n", algo_name(ALG_MERGE), n, m_ns, trials); fflush(stdout);
+
+        long pp_ns = bench_min(ALG_PP_MERGE, base, n, trials);
+        printf("%s,%d,%ld,%d\n", algo_name(ALG_PP_MERGE), n, pp_ns, trials); fflush(stdout);
+
+        free(base);
+    }
+
+    // Demonstrate insertion sort best/worst cases (optional)
+    int n_demo = 16384;
+    int *near = new_nearly_sorted(n_demo, 64);  // very few local inversions
+    int *rev  = new_reverse_sorted(n_demo);
+    long near_ns = bench_min(ALG_INSERTION, near, n_demo, trials);
+    long rev_ns  = bench_min(ALG_INSERTION, rev,  n_demo, trials);
+    printf("insertion_nearly_sorted,%d,%ld,%d\n", n_demo, near_ns, trials);
+    printf("insertion_reverse_sorted,%d,%ld,%d\n", n_demo, rev_ns, trials);
+    free(near); free(rev);
+
+    return 0;
+}
+```
+
+**What this prints** (CSV):
+
+*   For each `n` and algorithm: `algo,n,ns_total,min_of_k`.
+*   Two extra lines comparing insertion on **nearly sorted** vs **reverse sorted** inputs (to illustrate best vs worst case).  
+    This allows you to easily plot **time vs n**.
+
+***
+
+## 3) What to expect (theory → experiment)
+
+**Selection sort** scans the suffix each pass: comparisons ≈ $$\frac{n(n-1)}{2}$$ → **$$O(n^2)$$**; time $$\approx c_s n^2 + d$$. Verify via quadratic fit to your data. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+**Insertion sort** is **$$O(n^2)$$** worst case (reverse order) but **near‑linear** when the array is almost sorted (few inversions). You should observe:
+
+*   Reverse input ≫ random ≫ nearly sorted.  
+    This is exactly what the assignment invites you to reason about and confirm. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+**Merge sort** uses **divide and conquer + merge**, needs an auxiliary array, and runs in **$$O(n\log n)$$** deterministically; it is **stable** (preserves equal‑key order). Your plots should fit $$ T(n)\approx c_m n \log_2 n + d$$. The PDF also contrasts mergesort with quicksort (in‑place, not stable, can degrade on certain inputs), noting mergesort’s robustness. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+**Ping‑pong / toggle trick.** The assignment’s “give this a try” suggests **alternating source/dest arrays** in recursion so merge can write directly to the destination without re‑copying, reducing memory traffic. Your results should show **similar complexity** with a **small constant‑factor improvement** on large arrays (cache‑friendlier). [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+## 4) Presenting results (clear and assignment‑aligned)
+
+*   Report **minimum** time of $$k$$ trials (already done by the harness).
+*   Use **2–3 significant digits** and friendly units.
+*   Plot **time vs $$n$$**:
+    *   Selection & Insertion → shapes consistent with **$$n^2$$**; fit $$an^2+bn+c$$.
+    *   Merge & Ping‑pong → **$$n\log n$$**; fit $$a\,n\log_2 n + b$$.
+*   Include a short note on **stability** (mergesort stable; quicksort not guaranteed) per brief. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+## 5) LaTeX (pgfplots) to visualize CSV
+
+Assume `results.csv` contains all rows. You can split by algorithm using `x filter/.code` or pre‑filter. Here is a simple **inline data** example; replace with your own numbers (or use `\addplot table` to load CSV):
+
+```latex
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xlabel={Array size $n$},
+  ylabel={Time (ms)},
+  width=12cm, height=7cm,
+  legend pos=north west,
+  grid=major]
+  % Example: plot two series with inline coords (replace with your measurements)
+  \addplot+[mark=*, thick] coordinates {
+    (1024, 0.09) (2048, 0.36) (4096, 1.45) (8192, 5.8) (16384, 23.2) (32768, 93.0)
+  }; \addlegendentry{selection}
+  \addplot+[mark=square*, thick] coordinates {
+    (1024, 0.07) (2048, 0.28) (4096, 1.12) (8192, 4.6) (16384, 18.4) (32768, 73.5)
+  }; \addlegendentry{insertion}
+\end{axis}
+\end{tikzpicture}
+\caption{Quadratic growth for selection and insertion sorts.}
+\end{figure}
+```
+
+For mergesort and ping‑pong mergesort, plot similarly and optionally add a modeled curve $$a\,n\log_2 n + b$$ using `\addplot` with `domain`.
+
+***
+
+## 6) Short write‑up (drop‑in for your report)
+
+*   **Selection sort.** Each pass selects the minimum of the suffix; comparisons $$\sim n^2/2$$. Measured time follows a quadratic trend, confirming **$$O(n^2)$$**. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   **Insertion sort.** Worst‑case **$$O(n^2)$$** (reverse input); near‑sorted inputs yield much faster times due to limited shifts; still quadratic in the worst case. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   **Merge sort.** Recursively sort halves and **merge** using an auxiliary array; **stable** and **$$O(n\log n)$$**; measured times align with $$n\log n$$. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   **Ping‑pong mergesort.** Alternating source/destination arrays during recursion avoids extra copying inside merge; similar $$O(n\log n)$$ but with a slightly better constant at scale. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   **Quicksort note (context).** Quicksort is in‑place and often faster in practice, but **not stable** and can degrade on adversarial patterns; mergesort is more robust. (This matches the assignment’s narrative.) [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+## 7) Sanity checklist (what the graders look for)
+
+*   ✅ Correct implementations of **selection**, **insertion**, **mergesort** (with **merge**), and the **toggle optimization**. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   ✅ Benchmarks across increasing $$n$$, **minimum** over multiple trials.
+*   ✅ Clear plots and **polynomial forms** that describe runtime: $$an^2+bn+c$$ vs $$a\,n\log_2 n + b$$. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+*   ✅ A brief discussion of **why insertion can be good on nearly sorted arrays** and the **stability** point. [\[sorting-c | PDF\]](https://ericsson-my.sharepoint.com/personal/sanders_wang_ericsson_com/Documents/jobs/RADIO_RTI/MyCCode/assignments/sorting-c/sorting-c.pdf)
+
+***
+
+If you’d like, I can:
+
+*   Generate a **ready‑made LaTeX section** with your CSV embedded in `pgfplots`.
+*   Add a **Makefile** that builds the binary and compiles your LaTeX in one command.
+*   Produce **separate CSVs** per algorithm and a polished **comparison figure** (selection/insertion vs mergesort).

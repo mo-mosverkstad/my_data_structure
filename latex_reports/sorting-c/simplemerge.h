@@ -1,0 +1,1 @@
+void simple_mergesort(int * org, unsigned int n);

@@ -1,0 +1,59 @@
+Code Review: sorting-c Directory
+Issues Found:
+1. main.c - MEMORY LEAK ON ERROR 🟡
+Lines 30-33: Freeing NULL pointer
+
+if (array == NULL) {
+    fprintf(stderr, "Failed to allocate keys array\n");
+    free(array);  // ❌ Pointless - array is NULL
+    return -1.0;
+}
+
+Copy
+Fix: Remove free(array);
+
+2. main.c - DEAD CODE 🟡
+Lines 46-48: Impossible condition
+
+if (count < 0) {
+    printf("Impossible\n");
+}
+
+Copy
+c
+Problem: count starts at 0 and only increments, can never be negative.
+
+Fix: Remove this block.
+
+3. selectionsort.c - INEFFICIENCY 🟡
+Line 9: Unnecessary self-comparison
+
+for (unsigned int j = i; j < n; j++) {
+
+Copy
+c
+Problem: Compares arr[i] with itself on first iteration.
+
+Fix: Start at i + 1:
+
+for (unsigned int j = i + 1; j < n; j++) {
+
+Copy
+c
+All Sorting Algorithms: Clean ✅
+insertionsort.c - Now correct after fix ✓
+
+mergesort.c - Proper memory management, NULL checks ✓
+
+quicksort.c - Bounds checking correct ✓
+
+selectionsort.c - Logic correct (minor inefficiency only) ✓
+
+Summary:
+🟡 Minor issues only - No critical bugs
+
+Remove dead code in main.c (lines 32, 46-48)
+
+Fix selectionsort.c inner loop start index for efficiency
+
+All sorting algorithms are functionally correct and safe. The benchmark should now give accurate results.
