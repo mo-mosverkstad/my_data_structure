@@ -1,5 +1,20 @@
 searching algorithms
 
 
-For each of the algorithms you should explain the
-run time as a function of the size of the array
+For each of the algorithms you should explain the run time as a function of the size of the array
+
+Selection sort:
+What is the run time complexity of this algorithm? Do some benchmarks and verify your assumption.
+
+Insertion sort:
+The implementation is a bit trickier but still only a few lines of code if you implement a procedure swap that will swap two elements in an array.
+
+Do some benchmarks and determine how well insertion sort compares to selection sort. Is there a difference, why? Are there any arrays that the insertion algorithm works better or worse for? You have to think a bit on the last question and then possibly confirm your thoughts in an experiment.
+
+Merge sort:
+...
+If you get it right you can run some benchmarks and see if it pays off.
+swap src and dst on each recursive calk
+
+Quick sort:
+...
