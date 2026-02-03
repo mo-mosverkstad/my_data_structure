@@ -4,7 +4,7 @@
 #include <float.h>
 
 
-void run_benchmark(double benchmark_function(int)) {
+void run_benchmark(double benchmark_function(int, void (*)(int*, unsigned int)), void (*sort_func)(int*, unsigned int)) {
     int SIZE_LENGTH = 7;
     int sizes[] = {1024, 2048, 4196, 8192, 16384, 32768, 65535};
     int trials = 16;
@@ -16,7 +16,7 @@ void run_benchmark(double benchmark_function(int)) {
         
         printf("--- BENCHMARK MEASUREMENTS (%d, %d SIZE) ---\n", i, size);
         for (int j = 0; j < trials; j++) {
-            double elapsed_time = benchmark_function(size);
+            double elapsed_time = benchmark_function(size, sort_func);
             if (elapsed_time < min){
                 min = elapsed_time;
             }

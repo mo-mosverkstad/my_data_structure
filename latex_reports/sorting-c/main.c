@@ -15,7 +15,15 @@ long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
 }
 
-double benchmark_function(int n){
+bool is_sorted(int *arr, unsigned int n) {
+    if (arr == NULL || n < 2) return true;
+    for (unsigned int i = 1; i < n; i++) {
+        if (arr[i] < arr[i-1]) return false;
+    }
+    return true;
+}
+
+double benchmark_function(int n, void (*sort_func)(int*, unsigned int)){
     if (n <= 0) {
         fprintf(stderr, "Error: n must be positive\n");
         return -1.0;
@@ -37,11 +45,16 @@ double benchmark_function(int n){
             array[i] = rand() % 32768;
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        simple_mergesort(array, n);
+        sort_func(array, n);
         clock_gettime(CLOCK_MONOTONIC, &stop);
-        if (array[n-1] > 0) count++;
+        if (is_sorted(array, n)) count++;
         free(array);
         total_time += nano_seconds(&start, &stop);
+    }
+
+    if (count != loops) {
+        fprintf(stderr, "Error: Sorting failed! %d/%d arrays sorted correctly\n", count, loops);
+        return -1.0;
     }
 
     return (double) total_time/loops;
@@ -73,7 +86,7 @@ int main(){
     
     */
 
-    run_benchmark(benchmark_function);
+    run_benchmark(benchmark_function, quicksort);
 
 
     return 0;

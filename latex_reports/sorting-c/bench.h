@@ -1,1 +1,1 @@
-void run_benchmark(double benchmark_function(int));
+void run_benchmark(double benchmark_function(int, void (*)(int*, unsigned int)), void (*sort_func)(int*, unsigned int));
