@@ -4,8 +4,8 @@ C compilation and building:
 gcc -c <filename>.c -> generates <filename>.o
 
 This actually performs:
-Preprocessing macro (#include, #define)
-Compilation (C -> assembly)
+Preprocessing macro (#include, #define), expand all macro directives -> main.e (gcc -E main.c > main.e)
+Compilation (C -> assembly) (gcc -S main.c -> asm, stop after generating assembly)
 Assembly (assembly -> machine code)
 
 Result: <filename>.o:
@@ -90,3 +90,7 @@ Treat allocation and deallocation like matching parentheses: write both first, t
 1. T = malloc() -...-> free(T)
 2. T -> (U = malloc() -...-> free(T)) -> U
 3. A(malloc(T)), B(malloc(T)) -> A() -...-> B()
+
+
+--------------
+
