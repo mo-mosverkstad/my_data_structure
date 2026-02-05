@@ -25,7 +25,10 @@
 \section*{Introduction}
 This report investigates the performance and behavior of different sorting algorithms in C: selection sort, insertion sort, merge sort and quicksort. The primary goal is to analyze and compare their key attributes, including efficiency, time complexity, and practical behavior with a growing size of an array.
 
+\section*{Benchmark Methodology}
 Execution time can be measured using the POSIX monotonic clock (\texttt{CLOCK\_MONOTONIC}) which has a granularity of hundreds of nanoseconds. Since each sorting algorithm execution is several orders of magnitudes longer than the clock precision, repeated or batched executions within a single timing measurement is unnecessary for obtaining reliable time measurement. The same algorithm is executed 16 times with randomized arrays, and the minimal time is recorded as it is least affected by operating system scheduling and background process noises.
+
+\section*{Sorting Algorithms}
 
 \subsection*{Selection sort}
 
@@ -85,7 +88,7 @@ In Figure~1, a quadratic equation can be fitted using mathematical regression to
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=13cm, height=8cm,
+      width=13cm, height=6cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -177,7 +180,7 @@ In terms of time complexity, it still remains $O(n^2)$ in worst case (a reversed
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=13cm, height=8cm,
+      width=13cm, height=6cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -224,12 +227,13 @@ In terms of time complexity, it still remains $O(n^2)$ in worst case (a reversed
 
 \subsection*{Merge sort}
 
-Merge sort, on the other hand, is a recursive sorting algorithm which conceptually split the array into two almost equal parts, with the right one containing at most one element more than left. Afterwards, the left and right subarray, located as two intervals between \texttt{lo} (short for low index) to \texttt{hi} (short for high index), are copied from original array \texttt{org} to another auxillary array \texttt{aux}. Each subarray is sorted recursively and merged afterward together using an efficient linear algorithm (\texttt{merge}). 
+Merge sort, on the other hand, is a recursive sorting algorithm which conceptually split the array into two almost equal parts, with the right one containing at most one element more than left. Afterwards, the left and right sub-array, located as two intervals between \texttt{lo} (short for low index) to \texttt{hi} (short for high index), are copied from original array \texttt{org} to another auxillary array \texttt{aux}. Each sub-array is sorted recursively and merged afterward together using an efficient linear algorithm (\texttt{merge}). 
 
-The left subarray spans from index \texttt{lo} to the inclusive index \texttt{mid} (middle), while the right subarray spans from index \texttt{mid + 1} to \texttt{hi}.
+The left sub-array spans from index \texttt{lo} to the inclusive index \texttt{mid} (middle), while the right sub-array spans from index \texttt{mid + 1} to \texttt{hi}.
 
 \begin{minted}{c}
-void sort(int * org, int * aux, unsigned int lo, unsigned int hi) {
+void sort(int * org, int * aux,
+unsigned int lo, unsigned int hi) {
     if (lo < hi) {
         unsigned int mid = lo + (hi - lo) / 2;
         sort(org, aux, lo, mid);
@@ -241,10 +245,16 @@ void sort(int * org, int * aux, unsigned int lo, unsigned int hi) {
 
 \end{minted}
 
-The merge operations combines two sorted subarrays by repeatedly copying the smallest element pointed to by the current indices of each subarray into the original array, until all elements have been merged. The values are read from the auxiliary array \texttt{aux} and written back into the destination array \texttt{org}.
+The merge operations combines two sorted sub-arrays by repeatedly copying the smallest element pointed to by the current indices of each sub-array into the original array, until all elements have been merged. The values are read from the auxiliary array \texttt{aux} and written back into the destination array \texttt{org}.
 
 \begin{minted}{c}
-void merge(int * org, int * aux, unsigned int lo, unsigned int mid, unsigned int hi) {
+void merge(
+    int * org,
+    int * aux,
+    unsigned int lo,
+    unsigned int mid,
+    unsigned int hi
+) {
     unsigned int i = lo;
     unsigned int j = mid + 1;
     for (unsigned int k = lo; k <= hi; k++) {
@@ -260,9 +270,9 @@ void merge(int * org, int * aux, unsigned int lo, unsigned int mid, unsigned int
 }
 \end{minted}
 
-From a stability perspective, mergesort is a stable algorithm. During the each merge step, the only step where reordering occurs, the element from the left subarray is selected first when two elements from respective array are same. Since the left subarray contains elements that originally appeared earlier in the input array, their relative order is preserved.
+From a stability perspective, mergesort is a stable algorithm. During the each merge step, the only step where reordering occurs, the element from the left sub-array is selected first when two elements from respective array are same. Since the left sub-array contains elements that originally appeared earlier in the input array, their relative order is preserved.
 
-Since the array is recursively divided into smaller subarrays, the recursion continues until subarrays of size one are reached. As the array is approximately halved at each recursive call, the total number of recursive levels is $\left \lceil{log_2(n)}\right \rceil $. At each recursive depth, the merge step processes all elements exactly once. That means on total, $n$ elements are copied from multiple subarray intervals in original array to auxiliary array, while $n$ elements are compared and copied back to original array during array merge. Therefore, the total amount of work performed at each recursive level is linear $O(n)$. In total, repeating linear-time work with logarithmic-time recursive depth yields time complexity $O(n\cdot log(n))$, which can be visualized using a fitted regression equation in Figure 3 with measurement data in Table 3.
+Since the array is recursively divided into smaller sub-arrays, the recursion continues until sub-arrays of size one are reached. As the array is approximately halved at each recursive call, the total number of recursive levels is $\left \lceil{log_2(n)}\right \rceil $. At each recursive depth, the merge step processes all elements exactly once. That means on total, $n$ elements are copied from multiple sub-array intervals in original array to auxiliary array, while $n$ elements are compared and copied back to original array during array merge. Therefore, the total amount of work performed at each recursive level is linear $O(n)$. In total, repeating linear-time work with logarithmic-time recursive depth yields time complexity $O(n\cdot log(n))$, which can be visualized using a fitted regression equation in Figure 3 with measurement data in Table 3.
 
 \begin{table}[h]
 \begin{center}
@@ -290,7 +300,7 @@ Since the array is recursively divided into smaller subarrays, the recursion con
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=13cm, height=8cm,
+      width=13cm, height=6cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -338,9 +348,9 @@ Since the array is recursively divided into smaller subarrays, the recursion con
 
 \subsection*{Improved merge sort}
 
-The merge sort algorithm can also be further improved the roles of the auxiliary array and the original array in each recursive call, in order to avoid copying the full array. Instead of copying the current subarray from \texttt{org} to \texttt{aux} at every level, the source and destination array roles are exchanged, while maintaining same merge logic. This is because that each recursive call only operates on a narrowed subarray range, which does not affect the elements outside the range.
+The merge sort algorithm can also be further improved by switching the roles of the auxiliary array and the original array in each recursive call, to avoid copying the full array. Instead of copying the current sub-array from \texttt{org} to \texttt{aux} at every level, the source and destination array roles are exchanged, while maintaining the same merge logic. This is because each recursive call only operates on a narrowed sub-array range, which does not affect the elements outside the range.
 
-As the improved version doesn't involves changes in merge step, where array reordering occurs, the algorithm is still stable.
+As the improved version does not involve changes in the merge step, where array reordering occurs, the algorithm is still stable.
 
 \begin{minted}{c}
 void sort(int * org, int * aux, unsigned int lo, unsigned int hi) {
@@ -353,7 +363,7 @@ void sort(int * org, int * aux, unsigned int lo, unsigned int hi) {
 }
 \end{minted}
 
-Similar to merge sort, the time complexity remains $O(n\cdot\log(n))$, which can be conformed by the fitted equation from regression in Figure 4, to the measured execution time in Table 4.
+Similar to merge sort, the time complexity remains $O(n\cdot\log(n))$, which can be conformed by the fitted equation from regression in Figure 4, to the measured execution time in Table 4. The improved merge sort reduces copying and therefore provides noticeably lower execution time (approximately 20\% improvement), confirming that the optimization pays off.
 
 \begin{table}[h]
 \begin{center}
@@ -370,7 +380,7 @@ Similar to merge sort, the time complexity remains $O(n\cdot\log(n))$, which can
     & $3.4\times10^{6}$
     & $7.8\times10^{6}$ \\
 \end{tabular}
-\caption{Simple merge sort: elapsed time per loop (transposed)}
+\caption{Improved merge sort: elapsed time per loop (transposed)}
 \label{tab:simple-mergesort-transposed}
 \end{center}
 \end{table}
@@ -381,7 +391,7 @@ Similar to merge sort, the time complexity remains $O(n\cdot\log(n))$, which can
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=13cm, height=8cm,
+      width=13cm, height=6cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -423,17 +433,17 @@ Similar to merge sort, the time complexity remains $O(n\cdot\log(n))$, which can
 
     \end{axis}
   \end{tikzpicture}
-  \caption{Simple merge sort benchmark with improved $n\log n$ regression (tail-aligned)}
+  \caption{Improved merge sort benchmark with improved $n\log n$ regression (tail-aligned)}
   \label{fig:simple-mergesort}
 \end{figure}
 
 \subsection*{Quick sort}
 
-Quick sort is a recursive sorting algorithm that selects a pivot element as the middlemost element in the array and partitions the remaining elements into two subarrays: one containing elements larger than the pivot element and the other smaller than pivot. Each subarray is then recursively sorted, until subarrays of size one is reached. Finally, the subarrays are combined to produce the fully sorted array.
+Quick sort is a recursive sorting algorithm that selects a pivot element as the middlemost element in the array and partitions the remaining elements into two sub-arrays: one containing elements larger than the pivot element and the other smaller than pivot. Each sub-array is then recursively sorted, until sub-arrays of size one is reached. Finally, the sub-arrays are combined to produce the fully sorted array.
 
 During the partitioning step, elements are swapped only based on comparisons with the pivot element. As a result, the relative order of elements with equal keys is not preserved, making quick sort an unstable sorting algorithm.
 
-Partitioning is performed using two index pointers starting from opposite ends of the subarray and moving toward each other. Whenever an element on the left pointer is larger than the pivot and an element on the right pointer is smaller, the two elements are swapped. This process continues until the pointers are met in pivot element, whereas a boundary between i and j index is drawn. The elements left to the boundary are less or equals to pivot element while the elements on the right side are larger than pivot.
+Partitioning is performed using two index pointers starting from opposite ends of the sub-array and moving toward each other. Whenever an element on the left pointer is larger than the pivot and an element on the right pointer is smaller, the two elements are swapped. This process continues until the pointers are met in pivot element, whereas a boundary between i and j index is drawn. The elements left to the boundary are less or equals to pivot element while the elements on the right side are larger than pivot.
 
 \begin{minted}{c}
 void quick_sort(int *arr, unsigned start, unsigned int end){
@@ -460,7 +470,7 @@ void quick_sort(int *arr, unsigned start, unsigned int end){
 }
 \end{minted}
 
-Similar to merge sort, the array is recursively divided into two smaller subarrays on each recursive call until subarrays of size one are reached. Each division does not guarantee equally divided subarrays on each partition, resulting in $n-1$ call depth in the worst case (selected pivot is smallest or largest element of the array). In the best case, the pivot is median value of the array, resulting in perfectly divided sub-arrays and $\log_2(n)$ call depth. Additionally, in each recursive depth, the partitioning step processes all elements of the array at most exactly once, meaning $n$ elements are compared and swapped, resulting in linear growth. In total, in the best case, the time complexity results in $O(n\cdot\log(n))$ with $log_2(n)$ call depth with each processing $n$ elements. However, in the worst case the time complexity can degrade to $O(n^2)$ time complexity, as call depth reaches $n$. In average case, the partition step can be modeled as dividing the array into two subarrays of expected sizes $\frac{n}{4}$ and ${\frac{3n}{4}}$. Time recurrence relation can be described as $t(n)=t(\frac{n}{4}) + t(\frac{3n}{4}) + cn$, whereas $cn$ is partitioning work. The recursion depth is determined by the larger subproblem, which decreases geometrically as $n{\frac{3}{4}}^k$ on depth $k$. As it approaches 1, the largest number of recursive depth is logarithmic, by solving $n(\frac{3}{4})^k=1$.
+Similar to merge sort, the array is recursively divided into two smaller sub-arrays on each recursive call until sub-arrays of size one are reached. Each division does not guarantee equally divided sub-arrays on each partition, resulting in $n-1$ call depth in the worst case (selected pivot is smallest or largest element of the array). In the best case, the pivot is median value of the array, resulting in perfectly divided sub-arrays and $\log_2(n)$ call depth. Additionally, in each recursive depth, the partitioning step processes all elements of the array at most exactly once, meaning $n$ elements are compared and swapped, resulting in linear growth. In total, in the best case, the time complexity results in $O(n\cdot\log(n))$ with $log_2(n)$ call depth with each processing $n$ elements. However, in the worst case the time complexity can degrade to $O(n^2)$ time complexity, as call depth reaches $n$. In average case, the partition step can be modeled as dividing the array into two sub-arrays of expected sizes $\frac{n}{4}$ and ${\frac{3n}{4}}$. Time recurrence relation can be described as $t(n)=t(\frac{n}{4}) + t(\frac{3n}{4}) + cn$, whereas $cn$ is partitioning work. The recursion depth is determined by the larger subproblem, which decreases geometrically as $n{\frac{3}{4}}^k$ on depth $k$. As it approaches 1, the largest number of recursive depth is logarithmic, by solving $n(\frac{3}{4})^k=1$.
 
 The logarithmic time complexity can be visualized in Figure 5 with a fitted regression equation from the empirical execution time in Table 5.
 
@@ -471,16 +481,16 @@ The logarithmic time complexity can be visualized in Figure 5 with a fitted regr
     & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
 \hline
 \textbf{ns}
-    & $9.4\times10^{4}$
-    & $1.9\times10^{5}$
-    & $3.8\times10^{5}$
-    & $7.2\times10^{5}$
-    & $1.6\times10^{6}$
-    & $3.4\times10^{6}$
-    & $7.8\times10^{6}$ \\
+    & $9.9\times10^{4}$
+    & $2.1\times10^{5}$
+    & $4.3\times10^{5}$
+    & $9.1\times10^{5}$
+    & $1.9\times10^{6}$
+    & $4.3\times10^{6}$
+    & $9.2\times10^{6}$ \\
 \end{tabular}
-\caption{Simple merge sort: elapsed time per loop (transposed)}
-\label{tab:simple-mergesort-transposed}
+\caption{Quick sort: elapsed time per loop (transposed)}
+\label{tab:quicksort-transposed}
 \end{center}
 \end{table}
 
@@ -490,7 +500,7 @@ The logarithmic time complexity can be visualized in Figure 5 with a fitted regr
     \begin{axis}[
       xlabel={Array size (elements)},
       ylabel={Time (ns)},
-      width=13cm, height=8cm,
+      width=13cm, height=6cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -505,47 +515,94 @@ The logarithmic time complexity can be visualized in Figure 5 with a fitted regr
         thick,
         color=blue
       ] coordinates {
-        (1024,     9.4e4)
-        (2048,     1.9e5)
-        (4196,     3.8e5)
-        (8192,     7.2e5)
-        (16384,    1.6e6)
-        (32768,    3.4e6)
-        (65535,    7.8e6)
+        (1024,     9.9e4)
+        (2048,     2.1e5)
+        (4196,     4.3e5)
+        (8192,     9.1e5)
+        (16384,    1.9e6)
+        (32768,    4.3e6)
+        (65535,    9.2e6)
       };
       \addlegendentry{Measured}
 
       % ----------------------------------------------------------
       % Improved regression:
       % t(n) = a*n*log2(n) + b*n + c
-      % a = 14.4834478744, b = -114.551055308, c = 1.02324e5
+      % a = 11.0996381095, b = -37.4339527432, c = 2.49031e4
       % ----------------------------------------------------------
       \addplot[
         red,
         thick,
         densely dashed,
         domain=1000:70000,   % restrict to data range for speed
-        samples=60
+        samples=60           % smooth enough, avoids timeout
       ]
-      {14.4834478744 * x * (ln(x)/ln(2)) + (-114.551055308) * x + 1.02324e5};
-      \addlegendentry{$t(n)=14.4834\,n\log_{2}n - 114.551\,n + 1.02\times10^{5}$}
+      {11.0996381095 * x * (ln(x)/ln(2)) + (-37.4339527432) * x + 2.49031e4};
+      \addlegendentry{$t(n)=11.0996\,n\log_{2}n \;-\; 37.434\,n \;+\; 2.49\times10^{4}$}
 
     \end{axis}
   \end{tikzpicture}
-  \caption{Simple merge sort benchmark with improved $n\log n$ regression (tail-aligned)}
-  \label{fig:simple-mergesort}
+  \caption{Quick sort benchmark with improved $n\log n$ regression (tail-aligned)}
+  \label{fig:quicksort}
 \end{figure}
 
 
 \section*{Conclusion}
 
-To sum up, both quick sort and merge sort outperform selection sort and insert sort, since the first two sort algorithm have a time complexity $O(n\cdot\log(n))$, while the latter two have a quadratic time complexity $(n^2)$. This theoretical difference is reflected in the empirical benchmark results which are visualized in Figure 6, where merge sort and quick sort scale much more efficiently as the array size increases. Judging the empirical data, mergesort and quicksort are hundreds times faster than selection sort and merge sort.
+In summary, the five sorting algorithms exhibit distinct asymptotic behaviors and practical characteristics, which can be visualized in Table 6.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l l}
+\hline
+\textbf{Algorithm} & \textbf{Selection sort} \\
+\hline
+Time complexity & $O(n^2)$ comparisons, $O(n)$ swaps \\
+Space complexity & $O(1)$ \\
+Stability & Unstable \\
+\hline
+\textbf{Algorithm} & \textbf{Insertion sort} \\
+\hline
+Time complexity & Best: $O(n)$, Worst: $O(n^2)$ \\
+Space complexity & $O(1)$ \\
+Stability & Stable \\
+\hline
+\textbf{Algorithm} & \textbf{Merge sort} \\
+\hline
+Time complexity & $O(n \log n)$ (all cases) \\
+Space complexity & $O(n)$ auxiliary array \\
+Stability & Stable \\
+\hline
+\textbf{Algorithm} & \textbf{Improved merge sort} \\
+\hline
+Time complexity & $O(n \log n)$ (fewer allocations, more cache-efficient) \\
+Space complexity & $O(n)$ \\
+Stability & Stable \\
+\hline
+\textbf{Algorithm} & \textbf{Quick sort} \\
+\hline
+Time complexity & Avg: $O(n \log n)$, Worst: $O(n^2)$ \\
+Space complexity & $O(\log n)$ recursion depth \\
+Stability & Unstable \\
+\hline
+\end{tabular}
+\caption{Summary of the five sorting algorithms (transposed).}
+\end{table}
+
+As a comparison between algorithms: both quick sort and merge sort, including improved merge variant, outperform selection sort and insert sort, since the first two sort algorithm have a time complexity $O(n\cdot\log(n))$, while the latter two have a quadratic time complexity $(n^2)$. This theoretical difference is reflected in the empirical benchmark results which are visualized in Figure 6, where quick sort and merge sort, including improved merge sort, scale much more efficiently as the array size increases. Judging the empirical data, quick sort, merge sort and improved merge sort are hundreds times faster than selection sort and insertion sort.
 
 Between the two quadratic algorithms, insertion sort consistently outperforms selection sort on average, as it terminates early when elements are already close to their intended positions. As a result, the algorithm is well-suited for nearly sorted arrays. In contrast, selection sort performs the same number of comparisons regardless of array element order.
 
-Between the two linear-logarithmic algorithms, performance comparasions cannot be determined, since both are logarithmic. Merge sort, on one hand, introduces a slight performance overhead of allocating and copying elements into an auxiliary array compared to quicksort, while quicksort, on other hand, can degrade to $O(n^2)$ time complexity.
+Between the three linear-logarithmic algorithms, performance comparisons cannot be determined, since both are logarithmic. Merge sort, on one hand, introduces a slight performance overhead of allocating and copying elements into an auxiliary array compared to quick sort. Improved merge sort can reduce the copying elements while quick sort, but auxiliary array performance cannot be reduced. On the other hand, quicksort can degrade to $O(n^2)$ time complexity.
 
-In terms of stability, merge sort and insertion sort preserve the relative order of elements with equal keys, while selection sort and quick sort do not. Additionally, merge sort provides the best balance between performance and stability, whereas quick sort, despite being unstable, remains attractive in practice due to its low constant factors and efficient in-place behavior.
+In terms of stability, merge sort, improved merge sort and insertion sort preserve the relative order of elements with equal keys, while selection sort and quick sort do not. Additionally, merge sort, including merge sort, provides the best balance between performance and stability, whereas quick sort, despite being unstable, remains attractive in practice due to its low constant factors and efficient in-place behavior.
+
+\iffalse
+
+Empirically, the $n\log n$ algorithms (merge sort, improved merge sort, and quick sort) scale far better than the quadratic algorithms (selection sort and insertion sort), matching theoretical expectations. Improved merge sort provides the best stable performance due to reduced memory overhead and enhanced cache behavior. Quick sort remains the fastest in practice for many inputs, despite instability and worst-case risk. Insertion sort outperforms selection sort on average due to early termination on partially sorted arrays.
+
+\fi
+
 
 \begin{figure}[h]
   \centering
@@ -559,7 +616,7 @@ In terms of stability, merge sort and insertion sort preserve the relative order
       legend columns=2,
       ymajorgrids=true,
       xmajorgrids=true,
-      % ymode=log,           % ← 如需对数纵轴可取消注释
+      % ymode=log,
       % log basis y=10,
     ]
 
@@ -642,7 +699,7 @@ In terms of stability, merge sort and insertion sort preserve the relative order
         (32768,    3.4e6)
         (65535,    7.8e6)
       };
-      \addlegendentry{Simple Merge — measured}
+      \addlegendentry{Improved Merge — measured}
 
       % =========================== Fits (Overleaf-safe) ===========================
       % Selection Sort fit: t = 1.07 n^2
@@ -678,11 +735,11 @@ In terms of stability, merge sort and insertion sort preserve the relative order
         purple, densely dashed, very thick,
         domain=1000:70000, samples=40
       ] {14.4834478744 * x * (ln(x)/ln(2)) + (-114.551055308) * x + 1.02324e5};
-      \addlegendentry{Simple Merge — fit}
+      \addlegendentry{Improved Merge — fit}
 
     \end{axis}
   \end{tikzpicture}
-  \caption{Comparison of Selection, Insertion, Merge, Quick, and Simple Merge Sort (measured vs. fitted)}
+  \caption{Comparison of Selection, Insertion, Merge, Quick, and Improved Merge Sort (measured vs. fitted)}
   \label{fig:sorts-comparison-5}
 \end{figure}
 

@@ -19,6 +19,9 @@ Resolves function/variable references between .o files
 Pulls in required libraries (libc, etc.)
 Produces a final executable
 
+-> The operating system creates a process and allocates memory for: the code, global data structures, a heap and a stack
+The operating system loads code and links it to system calls and shared libraries (dynamic linking), the operating system schedules the process for execution.
+
 
 Input files: What gcc does
 .c only: Compile + link
