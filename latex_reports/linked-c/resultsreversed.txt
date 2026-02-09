@@ -168,6 +168,6 @@ ELAPSED TIME PER LOOP: 2.5e+04 ns
 
 --- BENCHMARK SUMMARY (6) ---
 MAX TIME: 2.8e+04 ns/operation
-MIN TIME: 2.5e+04 ns/operation
+MIN TIME: 2.4e+04 ns/operation
 AVG TIME: 2.6e+04 ns/operation
 TOT TIME: 4.1e+05 ns/operation

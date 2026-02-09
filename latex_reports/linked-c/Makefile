@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-OBJ = main.o linked.o bench.o
+OBJ = main.o linked.o linkedstack.o bench.o
 TARGET = main
 
 # Linking

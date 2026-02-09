@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "linked.h"
+#include "linkedstack.h"
 #include "bench.h"
 
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
@@ -50,6 +51,41 @@ void test(){
     
     linked_free(lnk1);
     linked_free(lnk2);
+}
+
+void test_linked_stack(){
+    linked_stack *lnk1 = linked_stack_create();
+    
+    linked_stack_push(lnk1, 18);
+    linked_stack_push(lnk1, 35);
+    linked_stack_push(lnk1, 97);
+    linked_stack_push(lnk1, 17);
+    linked_stack_push(lnk1, 22);
+    linked_stack_push(lnk1, 58);
+    linked_stack_push(lnk1, 1024);
+    linked_stack_push(lnk1, 3211);
+    linked_stack_push(lnk1, 90);
+    
+    linked_stack_print(lnk1);
+    
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+    printf("Popped value %d\n", linked_stack_pop(lnk1));
+
+    linked_stack_print(lnk1);
+
+    linked_stack_free(lnk1);
 }
 
 double benchmark_function(int n){
@@ -106,8 +142,69 @@ double benchmark_function(int n){
     return (double) total_time/loops;
 }
 
+double benchmark_array(int n){
+    if (n <= 0) {
+        fprintf(stderr, "Error: n must be positive\n");
+        return -1.0;
+    }
+    int loops = 512;
+
+    struct timespec start, stop;
+    volatile int count = 0;
+    long total_time = 0;
+    
+    int **a = malloc(sizeof(int **) * loops);
+    int **b = malloc(sizeof(int **) * loops);
+    if (a == NULL || b == NULL) {
+        fprintf(stderr, "Failed to allocate linked list preallocations\n");
+        return -1.0;
+    }
+    
+    for (int i = 0; i < loops; i++){
+        a[i] = malloc(sizeof(int*) * 8192);
+        if (a[i] == NULL) {
+            fprintf(stderr, "Failed to allocate linked list\n");
+            return -1.0;
+        }
+        for (int k = 0; k < 8192; k++)
+            a[i][k] = k;
+        
+        b[i] = malloc(sizeof(int*) * n);
+        if (b[i] == NULL) {
+            fprintf(stderr, "Failed to allocate linked list\n");
+            return -1.0;
+        }
+        for (int k = 0; k < n; k++)
+            b[i][k] = k;
+    }
+    
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (int i = 0; i < loops; i++) {
+        int *new_array = malloc(sizeof(int*) * (8192+n));
+        for (int k = 0; k < 8192; k++ )
+            new_array[k] = a[i][k];
+        for (int k = 0; k < n; k++){
+            new_array[8192+k] = b[i][k];
+        }
+        free(new_array);
+        count++;
+    }
+    clock_gettime(CLOCK_MONOTONIC, &stop);
+    total_time += nano_seconds(&start, &stop);
+    
+    for (int i = 0; i < loops; i++){
+        free(a[i]);
+        free(b[i]);
+    }
+    free(a);
+    free(b);
+
+    return (double) total_time/loops;
+}
+
 
 int main(){
-    run_benchmark(benchmark_function);
+    // run_benchmark(benchmark_array);
+    test_linked_stack();
     return 0;
 }
