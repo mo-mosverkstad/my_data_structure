@@ -1,0 +1,15 @@
+In the following assignment we will create a simple data structure that holds a value and a reference to another data structure.
+
+a linked list
+// A linked list will hold a sequence of cells but only have access to the first cell in the sequence. Each cell in the sequence will have some property but also have a reference to the next cell in the sequence (sometimes called the tail). If this reference is a null-pointer the cell is the last item in the list. //
+
+Benchmark:
+Your first task is to set up a benchmark that gives us an idea of the running time of the append operation. You should vary the size of the first linked list (a) and append it to a fixed size linked list (b). We’re not interested in the exact run time but only how the run time changes with growing length of list a i.e. the big-O complexity.
+You should then switch the benchmark around so that you have the length of a fixed and increase the length of b. Explain your findings, why does it look like it does?
+
+Compare to an array:
+So far you have been working with arrays that behave quite different from a linked list. How would you implement the append function if you had used arrays instead of a linked list? Explain in your own words what the implementation would look like and what this would mean for the benchmark.
+
+a stack:
+In one of your previous assignments you implemented a dynamic stack that would change size as you pushed and popped items. Now using your implementation of a linked list, how would you implement a stack data structure with the regular push and pop operations? Use your own words and describe the pros and cons.
+Without doing any measurements, describe the expected difference in execution time for the array implementation and the linked list implementation of a stack.
