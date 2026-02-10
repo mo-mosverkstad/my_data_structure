@@ -384,9 +384,6 @@ By comparing performance of a linked list to an array in terms of appending two 
 
 A stack can also be implemented using a linked list. The elements are pushed to the first position in the linked list, which can thereafter be popped by removing the first element of the list and returning its value. The push operation is implemented exactly the same as adding an element into the first position of the linked list. However, the pop operation requires first removing the first element from the linked list stack, by updating the pointer to first element cell to point to the second element, while de-allocating the first element.
 
-Although the linked list version allows flexibility with sizes, ...
-Without doing any measurements, describe the expected difference in execution time for the array implementation and the linked list implementation of a stack.
-
 \begin{minted}{c}
 void linked_stack_push(linked_stack *lnk, int item) {
     // same as inserting element into first position in linked list
@@ -405,7 +402,15 @@ int linked_stack_pop(linked_stack *lnk) {
 }
 \end{minted}
 
+Although the linked list version allows flexibility with sizes, the execution time differ from array-based stack. In terms of time complexity, both implementations operate in amortized time complexity $O(1)$. However, in practice it can be expected that the array-based stack outperform the linked list. Although the linked list offer unbounded growth without sudden resizing performance stack, operations in linked lists involves pointer chasing, cache misses and memory allocation costs. Summing it up, since arrays are mostly inexpensive array write and read, it still outperform linked list.
+
 \section*{Conclusion}
+
+As a conclusion, a linked list in C provides flexibility in terms of cheap insertions and removal operations, while arrays benefit from contiguous memory layout with better cache performance and efficient element accessing. Searching for an element in linked list has linear time complexity $O(n)$, while insertion and deletion is linear time complexity $O(1)$, if the element pointer is given.
+
+In terms of append benchmark, the current linked list implementation without a pointer to last element has a linear time complexity $O(n)$ as the left linked list grows. The array has to be traversed to the last element before updating the pointers of both linked list, which is an constant-time operation $O(1)$. This behavior contrasts with arrays where dominant cost arises from copying all elements from both lists into another resized list, resulting into a linear time complexity $O(n+m)$, given that $n$ is the size of left linked list and $m$ in the right. The performance of the linked list can be improved dramatically if the pointer to last element is introduced.
+
+Putting it together, the results can be concluded that linked lists gains structural flexibility at the expense of memory locality, while arrays achieve better practical performance due to contiguous storage and predictable access patterns.
 
 
 
