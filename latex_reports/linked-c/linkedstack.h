@@ -1,10 +1,10 @@
 typedef struct linked_stack_cell {
     int value;
-    struct cell *tail;
+    struct linked_stack_cell *tail;
 } linked_stack_cell;
 
 typedef struct linked_stack {
-    cell *first;
+    linked_stack_cell *first;
 } linked_stack;
 
 linked_stack *linked_stack_create();

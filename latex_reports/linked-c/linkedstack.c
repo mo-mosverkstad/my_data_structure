@@ -12,6 +12,7 @@ typedef struct linked_stack {
 
 linked_stack *linked_stack_create() {
     linked_stack *new = (linked_stack*) malloc(sizeof(linked_stack));
+    if (new == NULL) return NULL;
     new->first = NULL;
     return new;
 }
@@ -42,6 +43,7 @@ void linked_stack_print(linked_stack *lnk){
 // add the item as the first cell in the list
 void linked_stack_push(linked_stack *lnk, int item) {
     linked_stack_cell *new = (linked_stack_cell*) malloc(sizeof(linked_stack_cell));
+    if (new == NULL) return;
     new->value = item;
     new->tail = lnk->first;
     lnk->first = new;

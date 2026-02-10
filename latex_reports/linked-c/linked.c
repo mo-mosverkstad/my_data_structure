@@ -14,6 +14,7 @@ typedef struct linked {
 
 linked *linked_create() {
     linked *new = (linked*)malloc(sizeof(linked));
+    if (new == NULL) return NULL;
     new->first = NULL;
     return new;
 }
@@ -43,6 +44,7 @@ void linked_print(linked *lnk){
 // add the item as the first cell in the list
 void linked_add(linked *lnk, int item) {
     cell *new = (cell*) malloc(sizeof(cell));
+    if (new == NULL) return;
     new->value = item;
     new->tail = lnk->first;
     
@@ -52,6 +54,7 @@ void linked_add(linked *lnk, int item) {
 // add the item as the last cell in the list (optional)
 void linked_add_last(linked *lnk, int item) {
     cell *new = (cell*) malloc(sizeof(cell));
+    if (new == NULL) return;
     new->value = item;
     new->tail = NULL;
     

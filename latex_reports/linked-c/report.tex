@@ -26,9 +26,6 @@
 This report investigates and delves into performance and behavior of a linked list in C. While linked list offers flexibility by carrying an address of next element of a list, it has some performance bottlenecks in terms of random access and cache locality. The primary goal of this report is to analyze the behavior and key attribute of a linked list and compare these features with arrays.
 
 
-\section*{Benchmark Methodology}
-As a time measurement tool of execution time, the POSIX monotonic clock (\texttt{CLOCK\_MONOTONIC}) could be used. The clock has a precision granularity of hundreds of nanoseconds, and while some operation may execute a few times higher than the clock precision, each operation is repeatedly executed over 512 times before dividing and calculating amortized execution time per operation for obtaining reliable time measurement. The process is repeated 16 times with differently sized arrays, and the minimal time is recorded as it is least affected by operating system scheduling and background process noises.
-
 \section*{Linked list}
 
 A linked list stores a sequence of elements by holding its first element. Each element in a linked list is stored in a cell with an element value and a pointer with the address of the next cell. A null pointer in a linked list cell denotes the last cell in the list, while a null pointer as the first element denotes the absence of elements in the list.
@@ -168,7 +165,7 @@ The benchmark results also conforms the linear time complexity growth of linked 
 \textbf{Size}
     & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
 \hline
-\textbf{Min time (ns)}
+\textbf{Time (ns)}
     & $3.7\times10^{3}$
     & $6.6\times10^{3}$
     & $1.2\times10^{4}$
@@ -187,8 +184,8 @@ The benchmark results also conforms the linear time complexity growth of linked 
   \begin{tikzpicture}
     \begin{axis}[
       xlabel={Array size (elements)},
-      ylabel={Min time (ns)},
-      width=13cm, height=6cm,
+      ylabel={Time (ns)},
+      width=13cm, height=5cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -239,7 +236,7 @@ Switching the roles between the two linked list, where the left one is kept fixe
 \textbf{Size}
     & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
 \hline
-\textbf{Min time (ns)}
+\textbf{Time (ns)}
     & $2.4\times10^{4}$
     & $2.4\times10^{4}$
     & $2.4\times10^{4}$
@@ -258,8 +255,8 @@ Switching the roles between the two linked list, where the left one is kept fixe
   \begin{tikzpicture}
     \begin{axis}[
       xlabel={Array size (elements)},
-      ylabel={Min time (ns)},
-      width=13cm, height=6cm,
+      ylabel={Time (ns)},
+      width=13cm, height=5cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -316,7 +313,7 @@ By comparing performance of a linked list to an array in terms of appending two 
 \textbf{Size}
     & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65535 \\
 \hline
-\textbf{Min time (ns)}
+\textbf{Time (ns)}
     & $2.0\times10^{4}$
     & $2.2\times10^{4}$
     & $2.7\times10^{4}$
@@ -335,8 +332,8 @@ By comparing performance of a linked list to an array in terms of appending two 
   \begin{tikzpicture}
     \begin{axis}[
       xlabel={Array size (elements)},
-      ylabel={Min time (ns)},
-      width=13cm, height=6cm,
+      ylabel={Time (ns)},
+      width=13cm, height=5cm,
       grid=major,
       legend pos=north west,
       ymajorgrids=true,
@@ -402,16 +399,45 @@ int linked_stack_pop(linked_stack *lnk) {
 }
 \end{minted}
 
-Although the linked list version allows flexibility with sizes, the execution time differ from array-based stack. In terms of time complexity, both implementations operate in amortized time complexity $O(1)$. However, in practice it can be expected that the array-based stack outperform the linked list. Although the linked list offer unbounded growth without sudden resizing performance stack, operations in linked lists involves pointer chasing, cache misses and memory allocation costs. Summing it up, since arrays are mostly inexpensive array write and read, it still outperform linked list.
+Although a linked‑list stack grows flexibly without resizing, it is slower in practice. Both array‑based and linked‑list stacks have amortized $O(1)$ push/pop time, but linked lists suffer from pointer chasing, cache misses, and allocation overhead. Arrays use contiguous memory with cheap reads and writes, so they generally outperform linked lists despite identical asymptotic complexity.
 
 \section*{Conclusion}
 
-As a conclusion, a linked list in C provides flexibility in terms of cheap insertions and removal operations, while arrays benefit from contiguous memory layout with better cache performance and efficient element accessing. Searching for an element in linked list has linear time complexity $O(n)$, while insertion and deletion is linear time complexity $O(1)$, if the element pointer is given.
+A linked list in C offers structural flexibility with inexpensive insertions and deletions, while arrays benefit from contiguous memory and superior cache behavior. Searching in a linked list remains linear time $O(n)$, whereas insertion or deletion is $O(1)$ when the target cell is known.
 
-In terms of append benchmark, the current linked list implementation without a pointer to last element has a linear time complexity $O(n)$ as the left linked list grows. The array has to be traversed to the last element before updating the pointers of both linked list, which is an constant-time operation $O(1)$. This behavior contrasts with arrays where dominant cost arises from copying all elements from both lists into another resized list, resulting into a linear time complexity $O(n+m)$, given that $n$ is the size of left linked list and $m$ in the right. The performance of the linked list can be improved dramatically if the pointer to last element is introduced.
+The append benchmark shows that, without a tail pointer, a linked list grows with linear time complexity $O(n)$ because the last element must be located before linking. In contrast, appending arrays incurs a dominant copying cost of $O(n+m)$ when resizing is required, while the pointer update itself is constant time $O(1)$. A tail pointer would reduce linked‑list append to constant time as well.
 
-Putting it together, the results can be concluded that linked lists gains structural flexibility at the expense of memory locality, while arrays achieve better practical performance due to contiguous storage and predictable access patterns.
+\begin{table}[h]
+\centering
+\begin{tabular}{l|p{5cm}|p{5cm}}
+\textbf{Aspect} 
+    & \textbf{Linked list} 
+    & \textbf{Array} \\ \hline
 
+Insertion / deletion 
+    & $O(1)$ if the cell pointer is known; supports flexible structural modifications 
+    & Expensive shifts for middle insert/delete; fixed-size layout (unless dynamically resized) \\ \hline
 
+Search 
+    & Requires full traversal; $O(n)$ 
+    & Fast random access; $O(1)$ per access, but search is $O(n)$ unless sorted or indexed \\ \hline
+
+Append operation 
+    & $O(n)$ without a tail pointer (must traverse to last element); becomes $O(1)$ if a tail pointer is maintained 
+    & Requires copying elements into a resized array; $O(n+m)$ when appending arrays of size $n$ and $m$ \\ \hline
+
+Memory layout 
+    & Elements scattered across the heap; poor cache locality 
+    & Contiguous memory; excellent cache performance and predictable access patterns \\ \hline
+
+Practical performance 
+    & Flexible but often slower due to pointer chasing and heap allocation 
+    & Typically faster in real workloads due to locality and cheap read/write operations \\ \hline
+\end{tabular}
+\caption{Comparison of linked list and array operations}
+\label{tab:ll-vs-array}
+\end{table}
+
+Overall, linked lists trade memory locality for flexibility, whereas arrays achieve faster practical performance thanks to contiguous storage and predictable access patterns.
 
 \end{document}
