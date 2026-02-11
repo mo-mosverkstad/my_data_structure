@@ -51,15 +51,6 @@ linked *linked_create() {
     new->first = NULL;
     return new;
 }
-void linked_free(linked *lnk) {
-    cell *nxt = lnk->first;
-    while (nxt != NULL) {
-        cell *tmp = nxt->tail;
-        free(nxt);
-        nxt = tmp;
-    }
-    free(lnk);
-}
 \end{minted}
 
 \subsection*{Adding an element}
@@ -109,6 +100,7 @@ bool linked_find(linked *lnk, int item){
 
 An element can be removed by finding the element cell by value and therefore unlink it from adjacent cells. The operation is split into two cases: either the first element is targeted for deletion, or the deleted element is in the middle of the list. Removing the first element can be accomplished by updating the first pointer of linked list to the second cell while freeing the first cell. Meanwhile, removing an element in the middle of the array requires finding the element by tracking its previous cell. As the target element cell is found, the previous cell re-links its tail to the element after the target one, while freeing the target afterwards. Although pointer updates and free operations are done in constant time, the target element cell must be located by finding, resulting in linear time complexity $O(n)$, as described earlier.
 
+
 \begin{minted}{c}
 void linked_remove(linked *lnk, int item){
     cell *nxt = lnk->first;
@@ -131,7 +123,7 @@ void linked_remove(linked *lnk, int item){
 }
 \end{minted}
 
-\section*{Benchmark of append operation}
+\section*{Append operation}
 \subsection*{Append Implementation}
 
 When a linked list \texttt{a} of size $n$ is appended to a second linked list \texttt{b} of size $m$, the operation can be performed by updating the tail pointer of the last cell of \texttt{a} so that it points to the first cell of \texttt{b}. Afterwards, the second linked list clears its own cells by setting its head pointer to \texttt{null}. Because the linked list structure does not maintain a direct pointer to the last element, locating the final cell of \texttt{a} requires a full traversal of its $n$ elements, resulting in a linear-time search.
@@ -304,7 +296,9 @@ Switching the roles of the two linked lists—keeping the first list at a fixed 
 
 \section*{Comparison with an array}
 
-By comparing performance of a linked list to an array in terms of appending two lists, linked list slightly outperforms arrays. The main reason is that arrays are fixed in size and must be copied into another array when resizing. Appending two arrays requires resizing the first array and copy the elements of the second array into the first one with sufficient space. In this case, the cost of appending two arrays is copying all the elements in both arrays. Assuming the first one has $n$ elements and the second one $m$ elements, the total time complexity is $O(n+m)$. Compared to linked list, the time complexity is only $O(n)$. In Figure~3, linear growth can be visualized with execution time data from Table~3.
+If the append operation were implemented using arrays instead of linked lists, the procedure would require allocating a new array large enough to hold both inputs, copying all $n$ elements of the first array into the new space, and then copying the $m$ elements of the second array after them. Because arrays have fixed size, this full copy must be performed whenever two arrays are appended.
+
+The cost of appending two arrays is therefore dominated by copying all $n + m$ elements, giving a time complexity of $O(n+m)$. In contrast, the linked-list append only needs to traverse the first list before updating a single pointer, which results in $O(n)$ time without a tail pointer and can be reduced to $O(1)$ if a tail pointer is maintained. In Figure~3, this linear copying cost is reflected in the benchmark results, with execution time data shown in Table~3.
 
 \begin{table}[h]
 \begin{center}
@@ -376,67 +370,73 @@ By comparing performance of a linked list to an array in terms of appending two 
   \label{fig:min-times-latest}
 \end{figure}
 
-\section*{Stack implementation using linked list}
+\section*{Stack implementation using a linked list}
 
-A stack can also be implemented using a linked list. The elements are pushed to the first position in the linked list, which can thereafter be popped by removing the first element of the list and returning its value. The push operation is implemented exactly the same as adding an element into the first position of the linked list. However, the pop operation requires first removing the first element from the linked list stack, by updating the pointer to first element cell to point to the second element, while de-allocating the first element.
+A stack follows the Last-In–First-Out (LIFO) principle and can be implemented naturally using a linked list. A \texttt{push} operation inserts a new element at the head of the list, while a \texttt{pop} operation removes and returns the head element. Since both operations modify only the first node, they run in constant time $O(1)$.
 
 \begin{minted}{c}
 void linked_stack_push(linked_stack *lnk, int item) {
-    // same as inserting element into first position in linked list
+    linked_stack_cell *new_cell = malloc(sizeof(linked_stack_cell));
+    new_cell->value = item;
+    new_cell->tail = lnk->first;
+    lnk->first = new_cell;
 }
 
 int linked_stack_pop(linked_stack *lnk) {
-    if (lnk->first == NULL) {
-        return 0;
-    }
-    // Remove first element
+    if (lnk->first == NULL) return 0;
     linked_stack_cell *first_cell = lnk->first;
     int value = first_cell->value;
-    lnk->first = lnk->first->tail;
+    lnk->first = first_cell->tail;
     free(first_cell);
     return value;
 }
 \end{minted}
 
-Although a linked‑list stack grows flexibly without resizing, it is slower in practice. Both array‑based and linked‑list stacks have amortized $O(1)$ push/pop time, but linked lists suffer from pointer chasing, cache misses, and allocation overhead. Arrays use contiguous memory with cheap reads and writes, so they generally outperform linked lists despite identical asymptotic complexity.
+A linked-list-based stack grows dynamically with no need for resizing and supports $O(1)$ insertion and removal at the head. However, each push requires a heap allocation, and each pop requires a deallocation. This leads to pointer chasing, poor cache locality, and higher constant factors compared to arrays.
+
+An array-based stack also offers amortized $O(1)$ push and $O(1)$ pop. Resizing the array is occasionally required when the capacity is exceeded, but the amortized cost remains constant. In practice, array stacks are typically faster because the data is stored in contiguous memory, providing excellent cache performance and minimal overhead per operation.
+
+In summary, both implementations offer the same asymptotic performance, but the array stack is generally faster in real-world execution, while the linked-list stack provides simpler dynamic growth and removes the need for manual capacity management.
 
 \section*{Conclusion}
 
-Linked lists in C provide structural flexibility with inexpensive insertions and deletions, while arrays benefit from contiguous memory layouts and superior cache performance. Searching in a linked list requires linear time $O(n)$, whereas insertion or deletion is $O(1)$ when the pointer to the target cell is already known.
+Linked lists provide flexible dynamic structures, while arrays benefit from contiguous memory and strong cache locality. In a linked list, searching is $O(n)$, whereas insertion or deletion at a known position is $O(1)$.
 
-In the first benchmark, the size of linked list $a$ was varied while it was appended to a fixed-size list $b$. Without a tail pointer, the append operation must traverse all $n$ elements of $a$, giving a linear running time of $O(n)$, which matches the measured results.
+The first benchmark varied the size of list $a$ while appending it to a fixed-size list $b$. Without a tail pointer, the append operation must traverse all $n$ nodes of $a$, giving the expected linear time $O(n)$. In the second benchmark, list $a$ remained fixed while list $b$ grew. Because the algorithm only traverses the fixed list, the running time stays constant and exhibits $O(1)$ behavior.
 
-In the second benchmark, the size of $a$ was fixed while the size of $b$ increased. Because the append operation only traverses the fixed list before a constant-time pointer update, the running time remains constant, showing an overall complexity of $O(1)$.
-
-For arrays, appending requires allocating a new array of size $n+m$ and copying all elements, resulting in a time complexity of $O(n + m)$. Linked lists avoid this full copy and only require traversal of the destination list; with a tail pointer, even this becomes $O(1)$.
+For arrays, appending two sequences of size $n$ and $m$ requires allocating a new array and copying all elements, resulting in $O(n+m)$ time. Linked lists avoid this full copy and only traverse the destination list; with a tail pointer the operation can be reduced to $O(1)$, see Table~\ref{tab:linkedlist-vs-array}.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{l|p{5cm}|p{5cm}}
-\textbf{Aspect} 
-    & \textbf{Linked list} 
-    & \textbf{Array} \\ \hline
-
-Variable-fixed append 
-    & Traverses $n$ nodes; $O(n)$ 
-    & Copy $n+m$ elements; $O(n+m)$ \\ \hline
-
-Fixed-variable append
-    & Traverses fixed list; $O(1)$ 
-    & Still copies $n+m$ elements; $O(n+m)$ \\ \hline
-
-Memory behavior
-    & Non-contiguous; weaker locality 
-    & Contiguous; strong locality \\ \hline
-
-Practical performance
-    & Flexible but slower  
-    & Typically faster \\ \hline
+\textbf{Aspect} & \textbf{Linked list} & \textbf{Array} \\ \hline
+Variable--fixed append & $O(n)$ traversal & $O(n+m)$ copy \\ \hline
+Fixed--variable append & $O(1)$ & $O(n+m)$ copy \\ \hline
+Memory behavior & Non-contiguous & Contiguous \\ \hline
+Practical performance & Flexible but slower & Typically faster \\ \hline
 \end{tabular}
-\caption{Benchmark-based comparison of linked lists and arrays}
-\label{tab:ll-vs-array}
+\caption{Comparison of linked lists and arrays}
+\label{tab:linkedlist-vs-array}
 \end{table}
 
-Overall, linked lists trade memory locality for structural flexibility, while arrays achieve faster practical performance through contiguous storage and efficient memory access patterns.
+Table~\ref{tab:stack-comparison} summarizes the stack implementations. Both stacks support $O(1)$ push and pop in theory, 
+but differ in practice: linked lists require heap allocation per push and pointer chasing on pop, while arrays operate in 
+contiguous memory and only occasionally resize.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l|p{5cm}|p{5cm}}
+\textbf{Aspect} & \textbf{Linked-list stack} & \textbf{Array stack} \\ \hline
+Push / Pop cost & $O(1)$ & Amortized $O(1)$ \\ \hline
+Memory allocation & Allocate/free per op & Rare resizing \\ \hline
+Cache locality & Poor & Excellent \\ \hline
+Overhead & Pointer + allocation cost & Minimal \\ \hline
+Typical performance & Slower & Faster \\ \hline
+\end{tabular}
+\caption{Stack implementations}
+\label{tab:stack-comparison}
+\end{table}
+
+Overall, linked lists offer flexible growth and simple structural modifications, while arrays provide better real-world performance due to contiguous storage and efficient memory access.
 
 \end{document}
