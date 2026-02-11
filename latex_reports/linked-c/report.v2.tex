@@ -156,7 +156,7 @@ void linked_append(linked *a, linked *b) {
 }
 \end{minted}
 
-\subsection*{Benchmark result: Variable-to-Fixed Append}
+\subsection*{Benchmark result: Variable-Fixed Append}
 The benchmark results conform the linear growth in running time for the append operation when the first linked list increases in size, consistent with the theoretical time complexity. As shown in Figure~1, the running time exhibits the expected $O(n)$ behavior when the fist linked list varies in length while the second linked list remains fixed at 8192 elements. The corresponding execution times are provided in Table~1.
 
 \begin{table}[h]
@@ -228,7 +228,7 @@ The benchmark results conform the linear growth in running time for the append o
   \label{fig:append-min-times-fitted}
 \end{figure}
 
-\subsection*{Benchmark result: Fixed-to-Variable Append}
+\subsection*{Benchmark result: Fixed-Variable Append}
 Switching the roles of the two linked lists—keeping the first list at a fixed size while allowing the second to grow—results in a constant-time growth pattern, as shown in Figure~2, with the corresponding execution times listed in Table~2. This observation is consistent with the theoretical performance analysis: only the last cell of the fixed linked list must be traversed before the constant-time pointer update can be applied. Consequently, the running time remains bounded by a constant and exhibits an overall time complexity of $O(1)$ for this configuration.
 
 \begin{table}[h]
@@ -417,11 +417,11 @@ For arrays, appending requires allocating a new array of size $n+m$ and copying 
     & \textbf{Linked list} 
     & \textbf{Array} \\ \hline
 
-Variable-to-fixed append 
+Variable-fixed append 
     & Traverses $n$ nodes; $O(n)$ 
     & Copy $n+m$ elements; $O(n+m)$ \\ \hline
 
-Fixed-to-variable append
+Fixed-variable append
     & Traverses fixed list; $O(1)$ 
     & Still copies $n+m$ elements; $O(n+m)$ \\ \hline
 
