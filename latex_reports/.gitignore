@@ -23,4 +23,3 @@ program
 *.synctex(busy)
 *.data.minted
 _minted/
-*.pdf
