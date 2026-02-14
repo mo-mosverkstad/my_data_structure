@@ -1,0 +1,1 @@
+void run_benchmark(double benchmark_function(int));

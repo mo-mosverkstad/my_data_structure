@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-OBJ = main.o rawqueue.o queue.o arrayqueue.o
+OBJ = main.o rawqueue.o queue.o arrayqueue.o bench.o
 TARGET = main
 
 # Linking

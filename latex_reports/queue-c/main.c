@@ -1,103 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
+#include <float.h>
 
 #include "rawqueue.h"
 #include "queue.h"
 #include "arrayqueue.h"
+#include "bench.h"
 
-/*
-int main(){
-    rawqueue *q = rawqueue_create();
-    
-    rawqueue_enqueue(q, 14);
-    rawqueue_enqueue(q, 22);
-    rawqueue_enqueue(q, 53);
-    rawqueue_enqueue(q, 57);
-    rawqueue_enqueue(q, 78);
-    rawqueue_enqueue(q, 62);
-    rawqueue_enqueue(q, 32);
-    
-    rawqueue_print(q);
-    
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    
-    rawqueue_enqueue(q, 75);
-    rawqueue_enqueue(q, 85);
-    rawqueue_enqueue(q, 95);
-    rawqueue_enqueue(q, 75);
-    rawqueue_enqueue(q, 85);
-    rawqueue_enqueue(q, 95);
-    
-    printf("Empty? %d\n", rawqueue_empty(q));
-    
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    printf("%d\n", rawqueue_dequeue(q));
-    
-    printf("Empty? %d\n", rawqueue_empty(q));
-    
-    rawqueue_free(q);
+long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
+    return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
 }
-*/
+
+double bench_enqueue(int size) {
+    struct timespec start, stop;
+    rawqueue *q = rawqueue_create();
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (int i = 0; i < size; i++) {
+        rawqueue_enqueue(q, i);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &stop);
+    long ns = nano_seconds(&start, &stop);
+    rawqueue_free(q);
+    return (double)ns / size;   // ns per operation
+}
+
+double bench_dequeue(int size) {
+    struct timespec start, stop;
+    rawqueue *q = rawqueue_create();
+    for (int i = 0; i < size; i++) {
+        rawqueue_enqueue(q, i);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (int i = 0; i < size; i++) {
+        rawqueue_dequeue(q);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &stop);
+    long ns = nano_seconds(&start, &stop);
+    rawqueue_free(q);
+    return (double)ns / size;
+}
+
+
 
 int main(){
-    arrayqueue *q = arrayqueue_create();
-    
-    arrayqueue_enqueue(q, 14);
-    arrayqueue_enqueue(q, 22);
-    arrayqueue_enqueue(q, 53);
-    arrayqueue_enqueue(q, 57);
-    arrayqueue_enqueue(q, 78);
-    arrayqueue_enqueue(q, 62);
-    arrayqueue_enqueue(q, 32);
-    
-    arrayqueue_print(q);
-    
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    
-    arrayqueue_print(q);
-    
-    arrayqueue_enqueue(q, 75);
-    arrayqueue_enqueue(q, 85);
-    arrayqueue_enqueue(q, 95);
-    arrayqueue_enqueue(q, 75);
-    arrayqueue_enqueue(q, 85);
-    arrayqueue_enqueue(q, 95);
-    
-    arrayqueue_print(q);
-    
-    printf("Empty? %d\n", arrayqueue_empty(q));
-    
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    printf("%d\n", arrayqueue_dequeue(q));
-    
-    arrayqueue_print(q);
-    
-    printf("Empty? %d\n", arrayqueue_empty(q));
-    
-    arrayqueue_free(q);
+    run_benchmark(bench_dequeue);
 }
