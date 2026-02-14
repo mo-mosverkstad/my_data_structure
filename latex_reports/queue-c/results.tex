@@ -12,6 +12,9 @@
 \usepackage{minted}
 \usepackage{siunitx}
 
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
 \begin{document}
 
 \title{
@@ -305,5 +308,70 @@ benchmark of improved queue - dequeue
   \caption{Improved queue \texttt{dequeue}: minimum time per loop with constant fit}
   \label{fig:improved-queue-dequeue-min-fit}
 \end{figure}
+
+
+Wrap Queue:
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  >=Stealth,
+  slot/.style={draw, circle, minimum size=8mm, inner sep=0pt, font=\small},
+  used/.style={fill=blue!10},
+  free/.style={fill=gray!10},
+  pointer/.style={->, very thick},
+  label/.style={font=\small}
+]
+
+% --- parameters ---
+\def\n{12}         % capacity
+\def\R{2.6}        % ring radius
+\def\head{9}       % head index
+\def\tail{4}       % first free slot
+% Example: used indices = 9,10,11,0,1,2,3 (head..tail-1 mod n)
+
+% --- place slots on a circle ---
+\foreach \i in {0,...,11} {
+  \coordinate (c\i) at ({90 - (360/\n)*\i}:\R);
+  \node[slot,free] (s\i) at (c\i) {\i};
+}
+
+% --- color used range ---
+\foreach \i in {9,10,11,0,1,2,3} {
+  \begin{scope}
+    \fill[blue!10] (s\i.north east) arc[start angle=0,end angle=360,radius=4mm] -- cycle;
+    % overlay the index again for clarity
+    \node at (s\i) {\i};
+  \end{scope}
+}
+
+% --- head & tail arrows ---
+% --- HEAD label to the right of circle 9, arrow into circle 9 ---
+% Text label placed 9 mm to the right of the circle's east anchor:
+\node[font=\small, anchor=west] (headlabel) at ($(s9.east)+(9mm,0)$) {head};
+% Arrow from the label back into the circle's right side:
+\draw[->, very thick]
+  (headlabel.west) -- ($(s9.east)+(0.2mm,0)$);
+
+\draw[pointer] ($(s\tail)+(-0.9,0)$) -- ($(s\tail)+(-0.48,0)$);
+\node[label,left] at ($(s\tail)+(-1.05,0)$) {tail=\tail};
+
+% --- arc annotation for the used segment ---
+\draw[very thin, blue!60, -{Stealth[length=2mm]}]
+  ($(s\head)!0.5!(s10)$) to[bend left=10] ($(s10)!0.5!(s11)$);
+\draw[very thin, blue!60, -{Stealth[length=2mm]}]
+  ($(s11)!0.5!(s0)$) to[bend left=10] ($(s0)!0.5!(s1)$);
+\draw[very thin, blue!60, -{Stealth[length=2mm]}]
+  ($(s1)!0.5!(s2)$) to[bend left=10] ($(s2)!0.5!(s3)$);
+
+\node[align=center, font=\small, fill=white, inner sep=1pt] at (0,-3.4) {%
+Used cells = \texttt{head} $\rightarrow$ \texttt{tail}$-1$ (mod $n$).\\
+Empty iff \texttt{head==tail}; grow before enqueue if next(\texttt{tail})==\texttt{head}.
+};
+
+\end{tikzpicture}
+\caption{Wrap-around queue shown as a ring: indices advance modulo $n$; the used segment runs from head to tail$-1$.}
+\label{fig:wrap-queue-ring}
+\end{figure}
+
 
 \end{document}
