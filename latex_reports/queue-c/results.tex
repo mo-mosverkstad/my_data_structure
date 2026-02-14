@@ -1,0 +1,309 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+
+\usepackage{minted}
+\usepackage{siunitx}
+
+\begin{document}
+
+\title{
+    \textbf{Queues in C}
+}
+\author{Mo Wang}
+\date{Spring 2026}
+
+\maketitle
+
+\section*{Benchmark Results}
+benchmark of raw queue - enqueue
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{Time (ns)}
+    & $6.8\times10^{2}$
+    & $1.7\times10^{3}$
+    & $4.4\times10^{3}$
+    & $8.3\times10^{3}$
+    & $1.5\times10^{4}$
+    & $3.0\times10^{4}$
+    & $6.1\times10^{4}$
+    & $1.3\times10^{5}$ \\
+\end{tabular}
+\caption{Minimum time per loop for raw queue enqueue benchmark}
+\label{tab:queue-raw-enqueue-min}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Queue size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true
+    ]
+
+      % ----------------------------------------------------------
+      % Measured MIN times
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,   6.8e2)
+        (2048,   1.7e3)
+        (4196,   4.4e3)
+        (8192,   8.3e3)
+        (16384,  1.5e4)
+        (32768,  3.0e4)
+        (65536,  6.1e4)
+        (131072, 1.3e5)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Fitted line: t(n) ≈ 0.95 n + 5.2e3
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=1000:140000,
+        samples=40
+      ] {0.95 * x + 5.2e3};
+      \addlegendentry{$t(n)=0.95\,n + 5.2\times10^{3}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Raw queue enqueue: minimum time per loop with fitted linear regression}
+  \label{fig:queue-raw-enqueue-min-fitted}
+\end{figure}
+
+
+benchmark of raw queue - dequeue
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{Time (ns)}
+    & 8.1 & 8.3 & 8.4 & 8.3 & 8.2 & 8.0 & 8.2 & 8.1 \\
+\end{tabular}
+\caption{Raw queue \texttt{dequeue}: minimum time per loop}
+\label{tab:queue-dequeue-min}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Queue size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true,
+      ymin=4, ymax=12
+    ]
+
+      % ---------------------------
+      % Measured MIN times
+      % ---------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,    8.1)
+        (2048,    8.3)
+        (4196,    8.4)
+        (8192,    8.3)
+        (16384,   8.2)
+        (32768,   8.0)
+        (65536,   8.2)
+        (131072,  8.1)
+      };
+      \addlegendentry{Measured}
+
+      % ---------------------------
+      % Constant fit: t(n) ≈ 8.2 ns
+      % ---------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=900:140000,
+        samples=2
+      ] {8.2};
+      \addlegendentry{$t(n)=8.2\ \text{ns}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Raw queue \texttt{dequeue}: minimum time per loop with constant fit}
+  \label{fig:queue-dequeue-min-fit}
+\end{figure}
+
+benchmark of improved queue - enqueue
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|ccccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65536 & 131072 & 262144 \\
+\hline
+\textbf{Time (ns)}
+    & 7.8
+    & 7.9
+    & 7.9
+    & 8.0
+    & 8.1
+    & 8.0
+    & 8.1
+    & 8.0
+    & 8.2 \\
+\end{tabular}
+\caption{Improved queue \texttt{enqueue}: minimum time per loop}
+\label{tab:improved-queue-enqueue-min}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Queue size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true,
+      ymin=6, ymax=10   % optional: enlarge Y range as you requested
+    ]
+
+      % ----------------------------------------------------------
+      % Measured MIN times
+      % ----------------------------------------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,    7.8)
+        (2048,    7.9)
+        (4196,    7.9)
+        (8192,    8.0)
+        (16384,   8.1)
+        (32768,   8.0)
+        (65536,   8.1)
+        (131072,  8.0)
+        (262144,  8.2)
+      };
+      \addlegendentry{Measured}
+
+      % ----------------------------------------------------------
+      % Constant fit: t(n) = 8.0 ns
+      % ----------------------------------------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=800:300000,
+        samples=2
+      ] {8.0};
+      \addlegendentry{$t(n)=8.0\ \text{ns}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Improved queue \texttt{enqueue}: minimum time per loop with constant fit}
+  \label{fig:improved-queue-enqueue-min-fit}
+\end{figure}
+
+
+benchmark of improved queue - dequeue
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|cccccccc}
+\textbf{Size}
+    & 1024 & 2048 & 4196 & 8192 & 16384 & 32768 & 65536 & 131072 \\
+\hline
+\textbf{Time (ns)}
+    & 8.4  & 8.4  & 8.5  & 8.4  & 8.5   & 8.3   & 8.9   & 8.4 \\
+\end{tabular}
+\caption{Improved queue \texttt{dequeue}: minimum time per loop}
+\label{tab:improved-queue-dequeue-min}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Queue size (elements)},
+      ylabel={Time (ns)},
+      width=13cm, height=6cm,
+      grid=major,
+      legend pos=north west,
+      ymajorgrids=true,
+      xmajorgrids=true,
+      ymin=6, ymax=10,
+      ytick={6,7,8,9,10}
+    ]
+
+      % ---------------------------
+      % Measured MIN times
+      % ---------------------------
+      \addplot+[
+        mark=*,
+        thick,
+        color=blue
+      ] coordinates {
+        (1024,    8.4)
+        (2048,    8.4)
+        (4196,    8.5)
+        (8192,    8.4)
+        (16384,   8.5)
+        (32768,   8.3)
+        (65536,   8.9)
+        (131072,  8.4)
+      };
+      \addlegendentry{Measured}
+
+      % ---------------------------
+      % Constant fit: t(n) = 8.5 ns
+      % ---------------------------
+      \addplot[
+        red,
+        thick,
+        densely dashed,
+        domain=900:140000,
+        samples=2
+      ] {8.5};
+      \addlegendentry{$t(n)=8.5\ \text{ns}$}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Improved queue \texttt{dequeue}: minimum time per loop with constant fit}
+  \label{fig:improved-queue-dequeue-min-fit}
+\end{figure}
+
+\end{document}
