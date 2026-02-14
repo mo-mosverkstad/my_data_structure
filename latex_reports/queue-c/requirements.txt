@@ -1,0 +1,33 @@
+queue-c:
+
+Linked list implementation:
+Queues are also called FIFO, first-in-first-out, that describes the functionality. This can be compared to a stack that is also referred to as last-in-first-out.
+We will implement a linked list. The linked list implementation is as you will see quite easy to implement and work with. It is quite efficient allthough it does allocate and deallocate data structures in each operation.
+
+Error handling
+We can return a zero if we try to remove an item from an empty queue. This is a drawback but it’s ok for now; it does mean that we can not save a
+zero in the queue since we then would not know if a returned zero is a valid answer or not.
+
+Performance benchmarks:
+What is the drawback of this implementation? What is the cost of removing the next element? What is the cost of adding a new element? Can we do better?
+
+An improvement:
+Change the structure of the queue so it holds a pointer to the first element, the head, of the queue but also a pointer to the last element, the tail. When adding a new item you can then access the last node directly and attach the new node immediately instead of traversing the list to find the last node. You have to be careful when removing the last element and when adding the first element but you should be able to do the implementation in a few lines of code.
+What is now the cost of adding an element to the queue? Run some benchmarks and show that you have improved the implementation.
+
+wrap-c:
+In you report describe how you implemented the dynamic queue (not simply listing the code). Your report should be a like a tutorial for someone who has not heard about this wrap-around solution.
+
+Basic idea:
+Let’s say that the array has a length of n and that the first element of the queue is at position 0 and the last element at position k −1 (k is the first free slot).
+Adding a new item to the queue can then be implemented simply by writing the new item at position k and increment k by one.
+Instead of move all items from 1 to k − 1 one step closer to the beginning, track of the first element in the queue using an index in the array. Increment i by one.
+
+Many corner cases:
+k equals to n-1? k cannot be incremented, or it would be outside the array memory space! In order to make this work you of course need to keep track of the size of the array, n, so this will be one additional property of the queue. Allocate larger array and copy items over would work, but causes memory hoarding over time with unbounded empty slot growth. k increments to n, by copying into capacity 2n.
+If you implement this and ship it as your contribution in a larger systems that in average does a thousand add and remove operations a second, how large would your array be after an hour? How large would it be after a year?
+
+Wrap around solution:
+Make use of available space by setting k back to 0 and carry on. If you think about it both i and k are incremented by one modulo n.
+Edge cases: If i is equal to k the queue is empty and we can not remove an item (this is the same as before). If k becomes equal to i after an enqueue operation, it means that the whole array is filled with valid items ... but it looks empty since i is equal to k
+Solution: allocate a new larger array (in the same way as you did with the stack implementation). You then copy all items from position i to k −1 (modulo n) to the new array starting at index 0. If everything works OK, you can discard the original array and replace it with the copy (remember to also update the index that points to the first item and the first free position).
