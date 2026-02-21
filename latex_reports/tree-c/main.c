@@ -357,7 +357,6 @@ static void run_benchmark(void) {
     size_t nsizes = sizeof(sizes) / sizeof(sizes[0]);
     size_t repeat = 1000;
 
-/*
     printf("=== BUILD BENCHMARK ===\n");
     printf("Columns: N | build_ns(rec) | build_ns(iter)\n");
 
@@ -380,7 +379,7 @@ static void run_benchmark(void) {
         free_tree(tr_rec);
         free_tree(tr_it);
         free(vals);
-    }*/
+    }
 
     printf("\n=== LOOKUP BENCHMARK ===\n");
     printf("Columns: N | lookup_ns(BST) | lookup_ns(binsearch)\n");
