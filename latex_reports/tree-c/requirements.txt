@@ -1,0 +1,17 @@
+The trees that we will work on now are so called binary trees i.e. a branch always divides into two branches, if it does not end in a leaf. The operations that we will look at are: construction, adding and searching for an item. We will later look at more general tree structures but the principles are the same.
+
+Set up a benchmark and compare the execution time for a growing data set.
+- Note that when you construct a binary tree you should not construct it using an ordered sequence of values - what would happen if you did? -> unbalanced and O(n)
+- How does the lookup algorithm compares to the binary search algorithm that you used in one of the previous assignments?
+- As an experiment, implement the add() operation but now without using a recursive strategy i.e. keep track of where you are in the tree as you go down a branch. Which approach is simpler to understand? -> Recursive
+
+
+Depth-first traversal -> you go down as deep as possible before considering the alternatives. called in-order ( The item of the node is thus in-between the items of the left and the right branch.) -> natural sorted order
+We could also present the items in a pre-order or post-order; the name describes where in the order we place the item of the node.
+
+
+Explicit stack: (implement the print method)
+Use your dynamic stack implementation from one of the first assignments and adapt it to be a stack of nodes (pointers to nodes).
+Invariant: The left sub-tree of a node that is pop:ed from the stack has been printed, the value of the node itself has not, nor the values of the right sub-tree.
+
+Implement the print procedure and test it to see that it works. You might wonder if there is any reason to use an explicit stack instead of the stack of the programming language but it turns out that it could come in handy. In the print example there is no point in using an explicit stack but we could have a scenario where we want to save a state that describes the sequence of elements after a specific element; more on this on a lecture.
