@@ -332,6 +332,7 @@ static void do_lookup(void *ctx) {
 }
 
 static void do_binsearch(void *ctx) {
+    binsearch_context *bc = (binsearch_context*)ctx;
     for (size_t i = 0; i < bc->N; ++i)
         binsearch_array(bc->arr_sorted, bc->N, bc->vals[i]);
 }
