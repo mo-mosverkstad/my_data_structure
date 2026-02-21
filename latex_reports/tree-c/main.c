@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <string.h>
+#include <limits.h>
 
 typedef struct node {
     int value;
@@ -38,6 +39,7 @@ tree *construct_tree() {
 }
 
 void free_tree(tree *tr) {
+    // Freeing the tree means freeing all nodes in it.
     if (tr != NULL){
         free_node(tr->root);
         free(tr);
@@ -63,15 +65,19 @@ void recursive_add(tree *tr, int value){
     tr->root = add_node(tr->root, value);
 }
 
+/* Iterative BST insertion - O(log N) average, O(N) worst case
+ * Traverses tree to find insertion point, tracking parent and direction */
 void add(tree *tr, int value){
-    // TODO: implement the non-recursive approach
-    bool left = true;
+    bool left = true;  /* Track whether to insert as left or right child */
     node* parent = NULL;
     node* nd = tr->root;
+    
+    /* Find insertion point */
     while (nd != NULL){
         if (value < nd->value){
             parent = nd;
             nd = nd->left;
+            left = true;  /* CRITICAL: Must set to true when going left */
         }
         else if (value > nd->value){
             parent = nd;
@@ -79,12 +85,14 @@ void add(tree *tr, int value){
             left = false;
         }
         else{
-            return;
+            return;  /* Value already exists */
         }
     }
+    
+    /* Insert new node */
     node* new_node = construct_node(value);
     if (parent == NULL){
-        tr->root = new_node;
+        tr->root = new_node;  /* Tree was empty */
     }
     else{
         if (left){
@@ -108,6 +116,8 @@ bool recursive_lookup(tree *tr, int value){
 }
 
 
+/* Iterative BST lookup - O(log N) average, O(N) worst case
+ * Returns true if value exists in tree, false otherwise */
 bool tree_lookup_iterative(const tree *tr, int value) {
     const node *nd = tr->root;
     while (nd != NULL) {
@@ -258,7 +268,7 @@ static long nanoseconds(struct timespec a, struct timespec b) {
     return sec * 1000000000L + nsec;
 }
 
-static bool binsearch_array(const int *arr, size_t n, int key) {
+bool binsearch_array(const int *arr, size_t n, int key) {
     size_t lo = 0, hi = n;
     while (lo < hi) {
         size_t mid = lo + (hi - lo) / 2;
@@ -270,69 +280,140 @@ static bool binsearch_array(const int *arr, size_t n, int key) {
     return false;
 }
 
+static long calculate_time(void (*work_func)(void*), void *context, size_t repeat, void (*cleanup_func)(void*)) {
+    struct timespec t0, t1;
+    long min_time = LONG_MAX;
+    for (size_t count = 0; count < repeat; ++count) {
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        work_func(context);
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        long elapsed = nanoseconds(t0, t1);
+        if (elapsed < min_time) min_time = elapsed;
+        if (cleanup_func) cleanup_func(context);
+    }
+    return min_time;
+}
+
+typedef struct {
+    tree *tr;
+    int *vals;
+    size_t N;
+    void (*add_func)(tree*, int);
+} build_context;
+
+typedef struct {
+    const tree *tr;
+    int *vals;
+    size_t N;
+} lookup_context;
+
+typedef struct {
+    const int *arr_sorted;
+    int *vals;
+    size_t N;
+} binsearch_context;
+
+static void do_build(void *ctx) {
+    build_context *bc = (build_context*)ctx;
+    for (size_t i = 0; i < bc->N; ++i)
+        bc->add_func(bc->tr, bc->vals[i]);
+}
+
+static void cleanup_build(void *ctx) {
+    build_context *bc = (build_context*)ctx;
+    free_node(bc->tr->root);
+    bc->tr->root = NULL;
+}
+
+static void do_lookup(void *ctx) {
+    lookup_context *lc = (lookup_context*)ctx;
+    for (size_t i = 0; i < lc->N; ++i)
+        tree_lookup_iterative(lc->tr, lc->vals[i]);
+}
+
+static void do_binsearch(void *ctx) {
+    for (size_t i = 0; i < bc->N; ++i)
+        binsearch_array(bc->arr_sorted, bc->N, bc->vals[i]);
+}
+
+static long benchmark_build(tree *tr, int *vals, size_t N, size_t repeat, void (*add_func)(tree*, int)) {
+    build_context ctx = {tr, vals, N, add_func};
+    return calculate_time(do_build, &ctx, repeat, cleanup_build);
+}
+
+static long benchmark_lookup(const tree *tr, int *vals, size_t N, size_t repeat) {
+    lookup_context ctx = {tr, vals, N};
+    return calculate_time(do_lookup, &ctx, repeat, NULL);
+}
+
+static long benchmark_binsearch(const int *arr_sorted, int *vals, size_t N, size_t repeat) {
+    binsearch_context ctx = {arr_sorted, vals, N};
+    return calculate_time(do_binsearch, &ctx, repeat, NULL);
+}
+
 static void run_benchmark(void) {
     size_t sizes[] = {1024, 2048, 4096, 8192, 16384, 32768, 65535, 131072};
     size_t nsizes = sizeof(sizes) / sizeof(sizes[0]);
-    size_t repeat = 16;
+    size_t repeat = 1000;
 
-    printf("Benchmark: shuffled inserts into BST vs. array binary search\n");
-    printf("Columns: N | build_ms(rec) | build_ms(iter) | lookup_ms(BST) | lookup_ms(binsearch)\n");
+/*
+    printf("=== BUILD BENCHMARK ===\n");
+    printf("Columns: N | build_ns(rec) | build_ns(iter)\n");
 
     for (size_t s = 0; s < nsizes; ++s) {
         size_t N = sizes[s];
 
         int *vals = make_range(N);
-        shuffle(vals, N); /* avoid degeneracy per assignment guidance */
+        shuffle(vals, N);
 
-        /* --- Build using recursive add --- */
+        // --- Build using recursive add ---
         tree *tr_rec = construct_tree();
-        struct timespec t0, t1;
+        long build_rec_ns = benchmark_build(tr_rec, vals, N, repeat, recursive_add);
 
-        clock_gettime(CLOCK_MONOTONIC, &t0);
-        for (size_t count = 0; count < repeat; ++count)
-            for (size_t i = 0; i < N; ++i) 
-                recursive_add(tr_rec, vals[i]);
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        long build_rec_ms = nanoseconds(t0, t1) / repeat;
-
-        /* --- Build using iterative add --- */
+        // --- Build using iterative add ---
         tree *tr_it = construct_tree();
-        clock_gettime(CLOCK_MONOTONIC, &t0);
-		for (size_t count = 0; count < repeat; ++count)
-            for (size_t i = 0; i < N; ++i)
-                add(tr_it, vals[i]);
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        long build_it_ms = nanoseconds(t0, t1) / repeat;
+        long build_it_ns = benchmark_build(tr_it, vals, N, repeat, add);
 
-        /* --- Lookup timings on BST (iterative) --- */
-        const size_t Q = N; /* look up all values */
-        clock_gettime(CLOCK_MONOTONIC, &t0);
-        volatile size_t hits_bst = 0;
-		for (size_t count = 0; count < repeat; ++count){
-            for (size_t i = 0; i < Q; ++i) {
-                hits_bst += tree_lookup_iterative(tr_it, vals[i]);
-            }
-		}
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        long lookup_bst_ms = nanoseconds(t0, t1) / repeat;
+        printf("%7zu | %13ld | %14ld\n", N, build_rec_ns, build_it_ns);
 
-        /* --- Prepare sorted array + binary search timings --- */
+        free_tree(tr_rec);
+        free_tree(tr_it);
+        free(vals);
+    }*/
+
+    printf("\n=== LOOKUP BENCHMARK ===\n");
+    printf("Columns: N | lookup_ns(BST) | lookup_ns(binsearch)\n");
+
+    for (size_t s = 0; s < nsizes; ++s) {
+        size_t N = sizes[s];
+
+        /* Create shuffled insertion order to build balanced BST */
+        int *vals = make_range(N);
+        shuffle(vals, N);
+
+        /* Build BST with shuffled values for balanced tree */
+        tree *tr_it = construct_tree();
+        for (size_t i = 0; i < N; ++i)
+            add(tr_it, vals[i]);
+
+        /* Create sorted array for binary search comparison */
         int *arr_sorted = (int *)malloc(N * sizeof(int));
         if (!arr_sorted) { perror("malloc sorted"); exit(EXIT_FAILURE); }
-        memcpy(arr_sorted, vals, N * sizeof(int));
+        for (size_t i = 0; i < N; ++i) arr_sorted[i] = (int)i;
         qsort(arr_sorted, N, sizeof(int), cmp_int);
 
-        clock_gettime(CLOCK_MONOTONIC, &t0);
-        size_t hits_arr = 0;
-		for (size_t count = 0; count < repeat; ++count){
-            for (size_t i = 0; i < Q; ++i) {
-                hits_arr += binsearch_array(arr_sorted, N, vals[i]);
-            }
-		}
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        long lookup_arr_ms = nanoseconds(t0, t1) / repeat;
+        /* Create random search keys to ensure O(log N) behavior
+         * (searching in sorted order would cause O(N) BST traversal) */
+        int *search_keys = make_range(N);
+        shuffle(search_keys, N);
 
-        printf("%7zu | %ld | %ld | %ld | %ld\n", N, build_rec_ms, build_it_ms, lookup_bst_ms, lookup_arr_ms);
+        /* Benchmark BST lookup: O(log N) expected */
+        long lookup_bst_ns = benchmark_lookup(tr_it, search_keys, N, repeat);
+
+        /* Benchmark array binary search: O(log N) expected */
+        long lookup_arr_ns = benchmark_binsearch(arr_sorted, search_keys, N, repeat);
+
+        printf("%7zu | %15ld | %20ld\n", N, lookup_bst_ns, lookup_arr_ns);
 			   
         /* For small trees, visually verify traversal order matches (sorted) */
         if (N <= 50) {
@@ -345,12 +426,9 @@ static void run_benchmark(void) {
 
         /* Clean up */
         free(vals);
+        free(search_keys);
         free(arr_sorted);
-        free_tree(tr_rec);
         free_tree(tr_it);
-
-        /* Notes (not printed): For ordered inserts, height ~ N, so O(N) lookup.
-           Shuffled inserts give average height ~ O(log N) (but still unbalanced). */
     }
 }
 
