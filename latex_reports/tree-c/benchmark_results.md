@@ -728,3 +728,108 @@ Lookup benchmark table (BST vs array binary search)
   \label{fig:lookup-benchmark-new-inplot-tl}
 \end{figure}
 
+
+
+
+
+=== BUILD BENCHMARK ===
+Columns: N | build_ns(rec) | build_ns(iter)
+   1024 |         47250 |          36921
+   2048 |        141502 |         109394
+   4096 |        315593 |         256353
+   8192 |        824637 |         661835
+  16384 |       2156050 |        1818473
+  32768 |       5108116 |        3940441
+  65535 |      14419679 |        9904026
+ 131072 |      34097388 |       28709514
+
+ \begin{table}[h]
+  \centering
+  \begin{tabular}{r|r|r}
+    \textbf{N} & \textbf{build\_ns(rec)} & \textbf{build\_ns(iter)} \\ \hline
+     1024   &      47\,250  &      36\,921  \\
+     2048   &     141\,502  &     109\,394  \\
+     4096   &     315\,593  &     256\,353  \\
+     8192   &     824\,637  &     661\,835  \\
+    16384   &   2\,156\,050  &   1\,818\,473  \\
+    32768   &   5\,108\,116  &   3\,940\,441  \\
+    65535   &  14\,419\,679  &   9\,904\,026  \\
+   131072   &  34\,097\,388  &  28\,709\,514  \\
+  \end{tabular}
+  \caption{Build times (nanoseconds) for recursive vs iterative insert.}
+  \label{tab:build-benchmark}
+\end{table}
+
+% Preamble needs:
+% \usepackage{pgfplots}
+% \pgfplotsset{compat=1.18}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Problem size $N$},
+      ylabel={Build time (ns)},
+      width=14cm, height=7cm,
+      grid=major,
+      legend style={at={(0.02,0.98)}, anchor=north west, draw=black, fill=white},
+      xmajorgrids=true, ymajorgrids=true,
+      ymin=0
+      % If you prefer a log-scaled x-axis (powers of two), uncomment:
+      % ,xmode=log, log basis x=2,
+      % xtick={1024,2048,4096,8192,16384,32768,65536,131072},
+      % xticklabel style={/pgf/number format/fixed}
+    ]
+
+      % ----------------------------------------------------------
+      % Measured: build_ns(rec)
+      % ----------------------------------------------------------
+      \addplot[
+        color=blue,
+        mark=*,
+        thick
+      ] coordinates {
+        (1024,   47250)
+        (2048,  141502)
+        (4096,  315593)
+        (8192,  824637)
+        (16384, 2156050)
+        (32768, 5108116)
+        (65535, 14419679)
+        (131072,34097388)
+      };
+      \addlegendentry{Build (recursive)}
+
+      % ----------------------------------------------------------
+      % Measured: build_ns(iter)
+      % ----------------------------------------------------------
+      \addplot[
+        color=red,
+        mark=square*,
+        thick
+      ] coordinates {
+        (1024,   36921)
+        (2048,  109394)
+        (4096,  256353)
+        (8192,  661835)
+        (16384, 1818473)
+        (32768, 3940441)
+        (65535, 9904026)
+        (131072,28709514)
+      };
+      \addlegendentry{Build (iterative)}
+
+      % ----------------------------------------------------------
+      % (Alternative) linear guides — comment out if not needed
+      % \addplot[blue!60, dash dot, very thick, domain=1024:131072, samples=25] {230 * x};
+      % \addlegendentry{Recursive (linear guide)}
+      %
+      % \addplot[red!60, dash dot, very thick, domain=1024:131072, samples=25] {200 * x};
+      % \addlegendentry{Iterative (linear guide)}
+      % ----------------------------------------------------------
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Build benchmark: recursive vs iterative insertion across increasing $N$.}
+  \label{fig:build-benchmark}
+\end{figure}

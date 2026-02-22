@@ -1,0 +1,28 @@
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Problem size $N$},
+      ylabel={Build time (ns)},
+      width=14cm, height=7cm,
+      grid=major,
+      legend style={at={(0.02,0.98)}, anchor=north west, draw=black, fill=white},
+      xmajorgrids=true, ymajorgrids=true,
+      ymin=0
+    ]
+
+      \addplot[color=blue, mark=*, thick] coordinates {
+{{BUILD_REC_COORDS}}
+      };
+      \addlegendentry{Build (recursive)}
+
+      \addplot[color=red, mark=square*, thick] coordinates {
+{{BUILD_ITER_COORDS}}
+      };
+      \addlegendentry{Build (iterative)}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Build benchmark: recursive vs iterative insertion across increasing $N$.}
+  \label{fig:build-benchmark}
+\end{figure}

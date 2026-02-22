@@ -1,0 +1,38 @@
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Problem size $N$},
+      ylabel={Lookup time (ns/op)},
+      width=14cm, height=7cm,
+      grid=major,
+      legend style={at={(0.02,0.98)}, anchor=north west, draw=black, fill=white},
+      xmajorgrids=true, ymajorgrids=true,
+      ymin=0
+    ]
+
+      \addplot[color=blue, mark=*, thick] coordinates {
+{{LOOKUP_BALANCED_COORDS}}
+      };
+      \addlegendentry{Balanced BST}
+
+      \addplot[color=green, mark=triangle*, thick] coordinates {
+{{LOOKUP_SHUFFLED_COORDS}}
+      };
+      \addlegendentry{Shuffled BST}
+
+      \addplot[color=red, mark=square*, thick] coordinates {
+{{LOOKUP_UNBALANCED_COORDS}}
+      };
+      \addlegendentry{Unbalanced BST}
+
+      \addplot[color=orange, mark=diamond*, thick] coordinates {
+{{LOOKUP_ARR_COORDS}}
+      };
+      \addlegendentry{Binary search}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Lookup benchmark: comparing balanced, shuffled, unbalanced BST and binary search.}
+  \label{fig:lookup-benchmark}
+\end{figure}
