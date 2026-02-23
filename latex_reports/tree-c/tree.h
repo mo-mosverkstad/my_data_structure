@@ -23,5 +23,6 @@ bool recursive_lookup(tree *tr, int value);
 bool tree_lookup_iterative(const tree *tr, int value);
 void print_tree(tree *tr);
 void tree_print_inorder_stack(const tree *tr);
+void tree_delete(tree *tr, int k);
 
 #endif
