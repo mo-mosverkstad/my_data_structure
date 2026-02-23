@@ -104,6 +104,60 @@ bool tree_lookup_iterative(const tree *tr, int value) {
     return false;
 }
 
+node *promote(node *nd) {
+    if (nd->left == NULL)
+        return nd;
+    node *nxt = nd;
+    while (nxt->left->left != NULL)
+        nxt = nxt->left;
+    node* leftmost = nxt->left;
+    nxt->left = nxt->left->right;
+    leftmost->right = nd;
+    return leftmost;
+}
+
+node* node_delete(node *nd, int k){
+    if (nd->value == k){
+        node *left = nd->left;
+        node *right = nd->right;
+        if (left == NULL && right == NULL){
+            free_node(nd);
+            return NULL;
+        }
+        if (left == NULL){
+            node *ret = nd->right;
+            free(nd);
+            return ret;
+        }
+        else if (right == NULL){
+            node *ret = nd->left;
+            free(nd);
+            return ret;
+        }
+        else{
+            node *promoted = promote(nd->right);
+            promoted->left = nd->left;
+            // promoted->right = nd->right; ???
+            free(nd);
+            return promoted;
+        }
+    }
+    if (nd->value < k && nd->right != NULL){
+        nd->right = node_delete(nd->right, k);
+        return nd;
+    }
+    if (nd->value > k && nd->left != NULL){
+        nd->left = node_delete(nd->left, k);
+        return nd;
+    }
+    return nd;
+}
+
+void tree_delete(tree *tr, int k){
+    if (tr == NULL) return;
+    tr->root = node_delete(tr->root, k);
+}
+
 static void print(node *nd) {
     if (nd != NULL) {
         print(nd->left);
