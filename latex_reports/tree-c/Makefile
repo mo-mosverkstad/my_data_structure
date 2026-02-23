@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -O2 -std=c11
 LDFLAGS = 
 TARGET = tree_benchmark
-OBJS = main_new.o tree.o stack.o benchmark.o latex_output.o
+OBJS = main_new.o tree.o stack.o benchmark.o latex_output.o arrayqueue.o bfs_sequence.o
 
 all: $(TARGET)
 
@@ -12,8 +12,11 @@ $(TARGET): $(OBJS)
 main_new.o: main_new.c benchmark.h
 	$(CC) $(CFLAGS) -c main_new.c
 
-tree.o: tree.c tree.h stack.h
+tree.o: tree.c tree.h stack.h arrayqueue.h
 	$(CC) $(CFLAGS) -c tree.c
+
+arrayqueue.o: arrayqueue.c arrayqueue.h
+	$(CC) $(CFLAGS) -c arrayqueue.c
 
 stack.o: stack.c stack.h tree.h
 	$(CC) $(CFLAGS) -c stack.c
