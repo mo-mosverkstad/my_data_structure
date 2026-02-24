@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
     printf("\n");
     breadth_first_print(myTree);
 
+    free_sequence(seq);
     free_tree(myTree);
     
     return 0;

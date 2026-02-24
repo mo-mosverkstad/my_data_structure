@@ -332,14 +332,16 @@ void tree_print_inorder_stack(const tree *tr) {
  * @param tr Pointer to the tree
  */
 void breadth_first_print(const tree *tr){
-    if (tr == NULL) return; // Invalid tree
+    if (!tr || !tr->root) return; // Invalid tree
     
     // Create queue for BFS traversal
     arrayqueue *queue = arrayqueue_create();
-    node *current = tr->root;
+    arrayqueue_enqueue(queue, tr->root);
     
     // Process nodes level by level
-    while (current != NULL){
+    while (!arrayqueue_empty(queue)) {
+        node *current = arrayqueue_dequeue(queue);
+        
         // Visit current node
         printf("%d ", current->value);
         
@@ -348,9 +350,6 @@ void breadth_first_print(const tree *tr){
             arrayqueue_enqueue(queue, current->left);
         if (current->right != NULL) 
             arrayqueue_enqueue(queue, current->right);
-        
-        // Get next node from queue (NULL if queue empty)
-        current = arrayqueue_dequeue(queue);
     }
     
     // Clean up

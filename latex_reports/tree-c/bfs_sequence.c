@@ -35,6 +35,17 @@ sequence *create_sequence(tree *tr){
     return seq;
 }
 
+void free_sequence(sequence *seq){
+    // Validate sequence pointer
+    if (seq == NULL) return;
+
+    // Free the internal queue
+    arrayqueue_free(seq->queue);
+
+    // Free the sequence structure itself
+    free(seq);
+}
+
 /**
  * Returns the next value in the breadth-first traversal.
  * Automatically enqueues the children of the current node.
