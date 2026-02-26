@@ -1,0 +1,25 @@
+Hashtable: Most natural way to organize a set of entries that should be accessible given a key. 
+
+Table of Swedish zip codes:
+The original file is in a CSV format (comma separated value), there are 9675 entries in total ??? Where file ???.
+
+We will read the file and insert each item in a array of entries. Each entry consists of the zip code, the name of the area and the population. Reading the file and adding them all to an array.
+
+1. Now write a lookup method that does a linear search through all zip codes looking for a specific entry. Then, since the zip codes in the file are ordered, you can write a binary search method that does the same. Write a small benchmark that searches for ”111 15” and ”984 99” and explain the results.
+
+
+2. Since we know that all zip codes are numbers we might as well convert them to Integers before creating the entries. Create a new version of your zip program. Re-run all benchmarks and presents the results, has the execution time improved?
+
+3. If we have the zip code as the key and the key is an integer, why not use that integer as an index in an array? We know that the highest possible key is 99999 so why not construct an array that is a hundred thousand elements large and then use the key as index.
+
+Size problem:
+The only drawback with the implementation that you have now is that the array is to 90% empty. You have an array of a hundred thousand elements but there are less then ten thousand zip codes. 
+The solution is to somehow transform the original key into an index in a smaller array. If we can find a function that takes a zip code key and returns an index in the range 0 to let’s say 10000 then the problem would be solved. 
+The function could not be too time consuming since the whole point is to save time so it should be very simple. The function that transforms a key to an index is called a hash function.
+One simple way of defining a hash function is to simply take the key modulo some value m in hope that the indexes should be fairly unique. If we have two keys that maps to the same index then we have collision that is something that we need to handle (and will be able to handle) but the fewer collisions better
+
+4. Do an experiment where you read all the zip codes from the file and then run through them creating an index modulo m for some values of m (10000, 20000 ...). Your experiment should count the number of collisions of each type i.e. two keys map to the same index, three keys map to the same index etc. The following skeleton code should get you starting:
+
+Finding a hash function is always a trade off between the size of the array (the maximum index) and the number of collisions. The larger array that is used the less collisions will you likely have but the more space is wasted.
+A larger array does not necessarily mean that we will have less collisions. Try the following three values: 13513, 13600 and 14000 - did the larger size help?
+
