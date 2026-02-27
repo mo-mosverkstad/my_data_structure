@@ -22,7 +22,7 @@ int hash(int zip, int mod){
 }
 
 // NULL returned if failure to open file or malloc data
-codes *read_postcodes(char *file, unsigned int size, int mod) {
+codes *read_postcodes(char *file, unsigned int size) {
     codes *postnr = (codes*) malloc(sizeof(codes));
     if (postnr == NULL) return NULL;
     
@@ -56,21 +56,36 @@ codes *read_postcodes(char *file, unsigned int size, int mod) {
         
         char *zip = strtok(copy, ",");
 		int zipnum = atoi(zip)*100 + atoi(zip+3);
-        int hashval = hash(zipnum, mod);
+        int hashval = hash(zipnum, size);
         int count = 0;
 
         while (areas[hashval].name != (char *) 0 && count++ < size) {
-            hashval = (hashval + 1) % mod;
+            hashval = (hashval + 1) % size;
         }
         if (count >= size){
-            area *new_areas = (area *) calloc(size*2, sizeof(area));
-            for (int i = 0; i < size; i++){
-                int newhash = hash(areas[i].zip, mod);
-                new_areas[newhash] = areas[i];
+            int new_size = size * 2;
+            area *new_areas = (area *) calloc(new_size, sizeof(area));
+            if (new_areas == NULL) {
+                free(copy);
+                continue;  // skip this entry if resize fails
             }
-            int hashval = hash(zipnum, mod);
-            while (areas[hashval].name != (char *) 0) {
-                hashval = (hashval + 1) % mod;
+            for (int i = 0; i < size; i++){
+                if (areas[i].name != NULL) {  // only rehash occupied slots
+                    int newhash = hash(areas[i].zip, new_size);
+                    while (new_areas[newhash].name != NULL) {  // linear probing in new table
+                        newhash = (newhash + 1) % new_size;
+                    }
+                    new_areas[newhash] = areas[i];
+                }
+            }
+            free(areas);
+            areas = new_areas;
+            size = new_size;
+            // recalculate hash for current entry
+            hashval = hash(zipnum, size);
+            count = 0;
+            while (areas[hashval].name != NULL && count++ < size) {
+                hashval = (hashval + 1) % size;
             }
         }
         areas[hashval].zip = zipnum;
@@ -85,47 +100,30 @@ codes *read_postcodes(char *file, unsigned int size, int mod) {
     return postnr;
 }
 
-/*
-void collisions(codes *postnr, int mod) {
+void collisions(codes *postnr) {
+    int size = postnr->n;
     int mx = 20;
-    int data[mod];
     int cols[mx];
-    for (int i = 0; i < mod; i++) data[i] = 0;
     for (int i = 0; i < mx; i++) cols[i] = 0;
-    for (int i = 0; i < mod; i++) {
-        area *current = postnr->areas[i];
-        while (current != NULL) {
-            data[i]++;
-            current = current->next;
+    
+    int total = 0;
+    for (int i = 0; i < size; i++) {
+        if (postnr->areas[i].name != NULL) {
+            int ideal = hash(postnr->areas[i].zip, size);
+            int distance = ((i - ideal + size) % size);  // distance
+            if (distance < mx) cols[distance]++;
+            total++;
         }
     }
-    int sum = 0;
-    for(int i = 0; i < mod; i++) {
-        sum += data[i];
-        if (data[i] < mx)
-            cols[data[i]]++;
-    }
-    printf("%d (%d) : \n", mod, sum);
-    printf("Collision distribution:\n");
+    
+    printf("Total entries: %d, Table size: %d\n", total, size);
+    printf("Probe distance distribution:\n");
     for (int i = 0; i < mx; i++) {
-        printf("%d: %d\n", i, cols[i]);
-    }
-    printf("\nBucket contents:\n");
-    for (int i = 0; i < mod; i++) {
-        if (data[i] > 0)
-            printf("bucket %d: %d entries\n", i, data[i]);
-    }
-    printf("\nAreas in each bucket:\n");
-    for (int bucket = 0; bucket < mod; bucket++) {
-        area *current = postnr->areas[bucket];
-        while (current != NULL) {
-            printf("bucket %d: %s (zip=%d)\n", bucket, current->name, current->zip);
-            current = current->next;
-        }
+        if (cols[i] > 0)
+            printf("%d probes: %d entries\n", i, cols[i]);
     }
     printf("\n");
 }
-*/
 
 void codes_print(codes *postnr){
     for (int i = 0; i < postnr->n; i++){
@@ -137,14 +135,14 @@ void codes_print(codes *postnr){
 
 area* codes_lookup(codes *postnr, int zip) {
     int size = postnr->n;
-    int index = hash(zip, postnr->n);
-    area current = postnr->areas[index];
+    int index = hash(zip, size);
     int count = 0;
-    while (current.zip != zip && count++ < size) {
+    while (count++ < size) {
+        area *current = &postnr->areas[index];
+        if (current->name == NULL) return NULL;  // empty slot = not found
+        if (current->zip == zip) return current;
         index = (index + 1) % size;
-        current = postnr->areas[index];
     }
-    if (current.zip == zip) return &postnr->areas[index];
     return NULL;
 }
 
@@ -160,7 +158,7 @@ void area_print(area *a){
 
 
 int main(){
-	codes *postnr = read_postcodes("zipcodes.csv", MOD, MOD);
+	codes *postnr = read_postcodes("zipcodes.csv", MOD);
     if (postnr == NULL) {
         printf("Error happened during file processing\n");
         return 1;
@@ -180,6 +178,6 @@ int main(){
 	area_print(a);
     
 	
-	// collisions(postnr, MOD);
+	collisions(postnr);
 	codes_print(postnr);
 }
