@@ -1,0 +1,208 @@
+Char array as zip code:
+Linear search 111 15: 4.21 nanoseconds
+Linear search 984 99: 33394 nanoseconds
+Binary search 111 15: 42 nanoseconds
+Binary search 984 99: 68 nanoseconds
+
+
+====
+(Char array) Linear search 111 15: 4.397461 nanoseconds
+(Char array) Linear search 984 99: 31807.758789 nanoseconds
+(Char array) Binary search 111 15: 48.917969 nanoseconds
+(Char array) Binary search 984 99: 57.201172 nanoseconds
+====
+
+
+int as zip code:
+Linear search 111 15: 3.38 nanoseconds
+Linear search 984 99: 18890 nanoseconds
+Binary search 111 15: 29 nanoseconds
+Binary search 984 99: 39 nanoseconds
+
+====
+(Int array) Linear search 11115: 4.661133 nanoseconds
+(Int array) Linear search 98499: 18420.549805 nanoseconds
+(Int array) Binary search 11115: 24.386719 nanoseconds
+(Int array) Binary search 98499: 39.989258 nanoseconds
+====
+
+
+=== Raw Linear vs Binary ===
+Raw Linear: key=111 15 result=0 time=19.0 ns
+Raw Binary: key=111 15 result=0 time=51.0 ns
+Raw Linear: key=984 99 result=9674 time=24789.0 ns
+Raw Binary: key=984 99 result=9674 time=54.0 ns
+=== Linear vs Binary ===
+Linear: key=11115 result=0 time=13.0 ns
+Binary: key=11115 result=0 time=35.0 ns
+Linear: key=98499 result=9674 time=3306.0 ns
+Binary: key=98499 result=9674 time=37.0 ns
+
+
+
+Large array implementation:
+Search 111 15: 1.95 nanoseconds
+Search 984 99: 1.95 nanoseconds
+
+Collision distribution bucket:
+10000 (9675)
+Collision distribution:
+0: 5535
+1: 2050
+2: 1130
+3: 545
+4: 334
+5: 203
+6: 99
+7: 56
+8: 39
+9: 9
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+20000 (9675) : 
+Collision distribution:
+0: 13596
+1: 4180
+2: 1471
+3: 509
+4: 194
+5: 50
+6: 0
+7: 0
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+12345 (9675) : 
+Collision distribution:
+0: 5199
+1: 4997
+2: 1804
+3: 311
+4: 33
+5: 1
+6: 0
+7: 0
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+17389 (9675) : 
+Collision distribution:
+0: 9459
+1: 6352
+2: 1414
+3: 161
+4: 3
+5: 0
+6: 0
+7: 0
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+---
+13513 (9675) : 
+Collision distribution:
+0: 6126
+1: 5410
+2: 1678
+3: 287
+4: 12
+5: 0
+6: 0
+7: 0
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+13600 (9675) : 
+Collision distribution:
+0: 7705
+1: 3406
+2: 1578
+3: 613
+4: 229
+5: 56
+6: 13
+7: 0
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
+
+14000 (9675) : 
+Collision distribution:
+0: 8528
+1: 3055
+2: 1316
+3: 615
+4: 320
+5: 134
+6: 31
+7: 1
+8: 0
+9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 0
+17: 0
+18: 0
+19: 0
