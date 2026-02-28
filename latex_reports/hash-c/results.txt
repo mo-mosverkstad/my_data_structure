@@ -39,11 +39,13 @@ Linear: key=98499 result=9674 time=3306.0 ns
 Binary: key=98499 result=9674 time=37.0 ns
 
 
-
+3:
 Large array implementation:
 Search 111 15: 1.95 nanoseconds
 Search 984 99: 1.95 nanoseconds
 
+
+4:
 Collision distribution bucket:
 10000 (9675)
 Collision distribution:
@@ -206,3 +208,316 @@ Collision distribution:
 17: 0
 18: 0
 19: 0
+
+
+5:
+=== Factor-based sizes ===
+---- Linear probing stats ----
+n = 9675, m = 9677, load factor α = 1.000
+Average probes (mean) = 438.956   (slots examined ≈ 439.956)
+Maximum probes = 9623   (max slots examined = 9624)
+Histogram (probe distance):
+ 0: 4356
+ 1: 257
+ 2: 146
+ 3: 170
+ 4: 226
+ 5: 106
+ 6: 108
+ 7: 67
+ 8: 119
+ 9: 114
+10: 63
+11: 96
+12: 105
+13: 32
+14: 54
+15: 45
+16: 79
+17: 74
+18: 37
+19: 25
+>=20: 3396
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 12097, load factor α = 0.800
+Average probes (mean) = 25.770   (slots examined ≈ 26.770)
+Maximum probes = 690   (max slots examined = 691)
+Histogram (probe distance):
+ 0: 4613
+ 1: 306
+ 2: 202
+ 3: 201
+ 4: 180
+ 5: 164
+ 6: 123
+ 7: 137
+ 8: 116
+ 9: 110
+10: 104
+11: 92
+12: 84
+13: 55
+14: 68
+15: 80
+16: 56
+17: 109
+18: 101
+19: 47
+>=20: 2727
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 14519, load factor α = 0.666
+Average probes (mean) = 10.014   (slots examined ≈ 11.014)
+Maximum probes = 417   (max slots examined = 418)
+Histogram (probe distance):
+ 0: 5999
+ 1: 269
+ 2: 239
+ 3: 251
+ 4: 233
+ 5: 224
+ 6: 182
+ 7: 129
+ 8: 124
+ 9: 71
+10: 84
+11: 115
+12: 65
+13: 79
+14: 41
+15: 70
+16: 32
+17: 37
+18: 40
+19: 44
+>=20: 1347
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 19373, load factor α = 0.499
+Average probes (mean) = 3.061   (slots examined ≈ 4.061)
+Maximum probes = 132   (max slots examined = 133)
+Histogram (probe distance):
+ 0: 7391
+ 1: 247
+ 2: 209
+ 3: 207
+ 4: 150
+ 5: 157
+ 6: 106
+ 7: 119
+ 8: 74
+ 9: 53
+10: 66
+11: 50
+12: 66
+13: 53
+14: 52
+15: 11
+16: 33
+17: 54
+18: 47
+19: 26
+>=20: 504
+------------------------------
+
+
+=== Fixed sizes ===
+---- Linear probing stats ----
+n = 9675, m = 10000, load factor α = 0.968
+Average probes (mean) = 593.153   (slots examined ≈ 594.153)
+Maximum probes = 7230   (max slots examined = 7231)
+Histogram (probe distance):
+ 0: 2983
+ 1: 91
+ 2: 119
+ 3: 117
+ 4: 91
+ 5: 70
+ 6: 83
+ 7: 103
+ 8: 85
+ 9: 79
+10: 78
+11: 85
+12: 63
+13: 56
+14: 79
+15: 46
+16: 57
+17: 63
+18: 63
+19: 50
+>=20: 5214
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 12345, load factor α = 0.784
+Average probes (mean) = 15.467   (slots examined ≈ 16.467)
+Maximum probes = 657   (max slots examined = 658)
+Histogram (probe distance):
+ 0: 5348
+ 1: 307
+ 2: 237
+ 3: 174
+ 4: 231
+ 5: 175
+ 6: 141
+ 7: 143
+ 8: 130
+ 9: 97
+10: 92
+11: 90
+12: 97
+13: 119
+14: 142
+15: 80
+16: 96
+17: 85
+18: 68
+19: 79
+>=20: 1744
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 13513, load factor α = 0.716
+Average probes (mean) = 15.231   (slots examined ≈ 16.231)
+Maximum probes = 317   (max slots examined = 318)
+Histogram (probe distance):
+ 0: 5833
+ 1: 245
+ 2: 213
+ 3: 170
+ 4: 200
+ 5: 144
+ 6: 168
+ 7: 111
+ 8: 101
+ 9: 76
+10: 109
+11: 112
+12: 118
+13: 68
+14: 78
+15: 79
+16: 67
+17: 66
+18: 49
+19: 35
+>=20: 1633
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 13600, load factor α = 0.711
+Average probes (mean) = 20.165   (slots examined ≈ 21.165)
+Maximum probes = 423   (max slots examined = 424)
+Histogram (probe distance):
+ 0: 4356
+ 1: 194
+ 2: 190
+ 3: 189
+ 4: 257
+ 5: 200
+ 6: 244
+ 7: 222
+ 8: 134
+ 9: 202
+10: 183
+11: 108
+12: 91
+13: 142
+14: 134
+15: 89
+16: 75
+17: 73
+18: 86
+19: 89
+>=20: 2417
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 14000, load factor α = 0.691
+Average probes (mean) = 53.328   (slots examined ≈ 54.328)
+Maximum probes = 746   (max slots examined = 747)
+Histogram (probe distance):
+ 0: 3986
+ 1: 140
+ 2: 166
+ 3: 164
+ 4: 179
+ 5: 134
+ 6: 187
+ 7: 170
+ 8: 141
+ 9: 125
+10: 146
+11: 99
+12: 103
+13: 117
+14: 80
+15: 86
+16: 68
+17: 78
+18: 84
+19: 107
+>=20: 3315
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 17389, load factor α = 0.556
+Average probes (mean) = 5.110   (slots examined ≈ 6.110)
+Maximum probes = 243   (max slots examined = 244)
+Histogram (probe distance):
+ 0: 6659
+ 1: 248
+ 2: 258
+ 3: 147
+ 4: 237
+ 5: 183
+ 6: 102
+ 7: 89
+ 8: 128
+ 9: 158
+10: 86
+11: 85
+12: 91
+13: 77
+14: 54
+15: 102
+16: 72
+17: 46
+18: 28
+19: 32
+>=20: 793
+------------------------------
+
+---- Linear probing stats ----
+n = 9675, m = 20000, load factor α = 0.484
+Average probes (mean) = 16.632   (slots examined ≈ 17.632)
+Maximum probes = 426   (max slots examined = 427)
+Histogram (probe distance):
+ 0: 5269
+ 1: 186
+ 2: 201
+ 3: 169
+ 4: 198
+ 5: 181
+ 6: 160
+ 7: 137
+ 8: 135
+ 9: 183
+10: 98
+11: 104
+12: 111
+13: 59
+14: 105
+15: 75
+16: 53
+17: 66
+18: 94
+19: 66
+>=20: 2025
+------------------------------
