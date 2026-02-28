@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 #include <float.h>
+#include <limits.h>
 
 #define AREAS 100000   // Maximum number of postal code areas
 #define BUFFER 200     // Buffer size for reading lines
@@ -123,49 +124,6 @@ void area_print(area *a){
 	}
 }
 
-/**
- * Analyze hash collision distribution
- * Shows how zip codes would distribute across hash table buckets
- */
-void collisions(codes *postnr, int mod) {
-    int mx = 20;  // Maximum collision count to track
-    int data[mod];  // Count of entries per bucket
-    int cols[mx];  // Histogram of collision counts
-    for (int i = 0; i < mod; i++) data[i] = 0;  // Initialize bucket counts
-    for (int i = 0; i < mx; i++) cols[i] = 0;  // Initialize histogram
-    for (int i = 0; i < postnr->n; i++) {  // Count entries per bucket
-        if (postnr->areas[i].name != NULL) {  // only count actual entries
-            int index = (postnr->areas[i].zip)%mod;  // Hash function
-            data[index]++;
-        }
-    }
-    int sum = 0;
-    for(int i = 0; i < mod; i++) {  // Build histogram
-        sum += data[i];
-        if (data[i] < mx)
-            cols[data[i]]++;  // Count buckets with this many entries
-    }
-    printf("%d (%d) : \n", mod, sum);
-    printf("Collision distribution:\n");
-    for (int i = 0; i < mx; i++) {  // Print histogram
-        printf("%d: %d\n", i, cols[i]);
-    }
-    printf("\nBucket contents:\n");
-    for (int i = 0; i < mod; i++) {  // Print non-empty buckets
-        if (data[i] > 0)
-            printf("bucket %d: %d entries\n", i, data[i]);
-    }
-    printf("\nAreas in each bucket:\n");
-    for (int bucket = 0; bucket < mod; bucket++) {  // Print all areas by bucket
-        for (int i = 0; i < postnr->n; i++) {
-            if (postnr->areas[i].name != NULL && (postnr->areas[i].zip) % mod == bucket) {
-                printf("bucket %d: %s (zip=%d)\n", bucket, postnr->areas[i].name, postnr->areas[i].zip);
-            }
-        }
-    }
-    printf("\n");
-}
-
 // Calculate elapsed time in nanoseconds
 long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
     return (t_stop->tv_nsec- t_start->tv_nsec) + (t_stop->tv_sec- t_start->tv_sec)*1000000000;
@@ -173,16 +131,15 @@ long nano_seconds(struct timespec *t_start, struct timespec *t_stop) {
 
 // Benchmark a search function with given zip code
 double benchmark_search(area* (*search_func)(codes*, int), codes *postnr, int zip, int repeat) {
-	double min = DBL_MAX;
+	long min = LONG_MAX;
 	struct timespec start, stop;
-	for (int j = 0; j < 1024; j++) {
+
+	for (int i = 0; i < repeat; i++) {
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (int i = 0; i < repeat; i++) {
-			volatile area *a = search_func(postnr, zip);
-		}
+		search_func(postnr, zip);
 		clock_gettime(CLOCK_MONOTONIC, &stop);
-		
-		double current_execution = (double) nano_seconds(&start, &stop) / (double) repeat;
+
+		long current_execution = nano_seconds(&start, &stop);
 		if (current_execution < min) min = current_execution;
 	}
 	return min;

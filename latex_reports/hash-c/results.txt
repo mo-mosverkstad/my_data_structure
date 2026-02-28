@@ -10,6 +10,12 @@ Binary search 984 99: 68 nanoseconds
 (Char array) Linear search 984 99: 31807.758789 nanoseconds
 (Char array) Binary search 111 15: 48.917969 nanoseconds
 (Char array) Binary search 984 99: 57.201172 nanoseconds
+
+
+(Int array) Linear search 11115: 15.000000 nanoseconds
+(Int array) Linear search 98499: 20051.000000 nanoseconds
+(Int array) Binary search 11115: 47.000000 nanoseconds
+(Int array) Binary search 98499: 50.000000 nanoseconds
 ====
 
 
@@ -26,16 +32,18 @@ Binary search 984 99: 39 nanoseconds
 (Int array) Binary search 98499: 39.989258 nanoseconds
 ====
 
-
+1:
 === Raw Linear vs Binary ===
 Raw Linear: key=111 15 result=0 time=19.0 ns
-Raw Binary: key=111 15 result=0 time=51.0 ns
 Raw Linear: key=984 99 result=9674 time=24789.0 ns
+Raw Binary: key=111 15 result=0 time=51.0 ns
 Raw Binary: key=984 99 result=9674 time=54.0 ns
+
+2:
 === Linear vs Binary ===
 Linear: key=11115 result=0 time=13.0 ns
-Binary: key=11115 result=0 time=35.0 ns
 Linear: key=98499 result=9674 time=3306.0 ns
+Binary: key=11115 result=0 time=35.0 ns
 Binary: key=98499 result=9674 time=37.0 ns
 
 
