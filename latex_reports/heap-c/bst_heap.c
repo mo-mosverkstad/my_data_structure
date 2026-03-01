@@ -51,7 +51,7 @@ void free_bst_tree(bst_tree *tr) {
  */
 static bst_node* add_node(bst_node *nd, int value){
     if (nd == NULL){
-        return construct_bst_node(value); // Base case: create new node
+        return construct_bst_node(value);
     }
     if (value < nd->value){
         nd->left = add_node(nd->left, value);   // Insert in left subtree
@@ -59,7 +59,6 @@ static bst_node* add_node(bst_node *nd, int value){
     else if (value > nd->value){
         nd->right = add_node(nd->right, value); // Insert in right subtree
     }
-    // If value == nd->value, duplicate - don't insert
     return nd;
 }
 
