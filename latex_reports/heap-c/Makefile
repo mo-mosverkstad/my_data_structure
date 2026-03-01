@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-OBJ = main.o naive_heap1.o naive_heap2.o tree.o tree_heap.o
+OBJ = main.o naive_heap1.o naive_heap2.o bst_heap.o tree_heap.o array_heap.o
 TARGET = main
 
 # Linking

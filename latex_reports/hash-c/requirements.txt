@@ -23,3 +23,180 @@ One simple way of defining a hash function is to simply take the key modulo some
 Finding a hash function is always a trade off between the size of the array (the maximum index) and the number of collisions. The larger array that is used the less collisions will you likely have but the more space is wasted.
 A larger array does not necessarily mean that we will have less collisions. Try the following three values: 13513, 13600 and 14000 - did the larger size help?
 
+
+
+
+
+Based on the assignment PDF you provided, there are **six major tasks** you are expected to complete.  
+Here is the clear breakdown:
+
+***
+
+# ✅ **1. Implement linear search**
+
+*   Write a function that scans through all entries sequentially and finds a ZIP code.
+
+***
+
+# ✅ **2. Implement binary search**
+
+*   Since the input file is sorted, write a binary search function.
+*   Benchmark both linear and binary search using ZIP:
+    *   `111 15`
+    *   `984 99`
+
+***
+
+# ✅ **3. Convert ZIP codes to integers and redo benchmarks**
+
+You must:
+
+*   Change the `area` structure to store `int zip` instead of string.
+*   Convert formats like `"111 15"` to integer:  
+    `a.zip = atoi(zip)*100 + atoi(zip+3);`
+*   Rerun the benchmarks from Tasks 1 & 2.
+*   Compare performance.
+
+***
+
+# ✅ **4. Use the ZIP code *as an array index* (direct indexing)**
+
+*   Create an array of size **100000**.
+*   Use the integer ZIP code as the direct index.
+*   Implement fast lookup.
+*   Benchmark and compare with binary search.
+
+***
+
+# ✅ **5. Hash function + collision analysis**
+
+*   Use `zip % m` as the hash function.
+*   For various values of `m` (e.g., 10000, 20000, 12345, 17389, 13513, 13600, 14000):
+    *   Count how many collisions occur.
+    *   Produce a distribution:  
+        “how many buckets have 1 element, 2 elements, 3 elements, …”
+*   Analyze differences when `m` changes.
+
+***
+
+# ✅ **6. Implement two hash tables with collision handling**
+
+This is the biggest part and contains two sub‑tasks:
+
+## 6a) **Separate chaining**
+
+*   Implement an array of buckets (linked lists).
+*   Insert all ZIP entries.
+*   Implement lookup.
+
+## 6b) **Linear probing (open addressing)**
+
+*   Reuse the array itself.
+*   On collision, move forward until an empty slot is found.
+*   Implement lookup that stops when an empty slot is found.
+*   Run statistics on:
+    *   Average number of steps required
+    *   Comparison for various table sizes
+
+***
+
+# 🎯 **Total tasks: 6 main tasks (with 2 sub‑tasks in task 6)**
+
+If you prefer a strict count:
+
+*   **6 major tasks**
+*   **7 or 8 sub‑tasks** depending on granularity (benchmarks, integer conversion, collision analysis, two hash‑table collision methods).
+
+***
+
+
+
+
+
+
+Short answer: **Yes—the trends in your results match the analysis.**  
+But the **magnitudes** (especially for linear probing) show **much more clustering than the uniform‑hashing theory predicts**, which strongly suggests your current hash `index = zip % m` is interacting with the structure of Swedish postcodes and the chosen `m` values.
+
+Below I’ll walk through what matches, what doesn’t, and what to do next.
+
+***
+
+## ✅ What matches the theory
+
+### 1) Separate chaining (bucketed hash table)
+
+*   As you **increase table size `m`** (e.g., from 10 000 to 20 000), you see **far more empty buckets** and **fewer high-occupancy buckets**. That’s exactly what we expect: lower load factor $$\alpha = n/m$$ spreads keys out and reduces collisions.  
+    *(Your distributions clearly shift mass from buckets with 1–5 items toward 0–1 as `m` grows—this is the textbook trend.)*
+
+*   Changing `m` **changes the collision profile**. Your runs with **primes** (e.g., 13 513, 17 389) generally look better behaved than **round numbers** (e.g., 13 600, 14 000), which is consistent with the idea that `zip % m` can align badly when `m` has small factors and keys have structure.
+
+### 2) Linear probing (open addressing)
+
+*   **Monotone trend w\.r.t. load factor:** As `m` grows (and $$\alpha = n/m$$ drops), your **average probes** fall dramatically—catastrophic near $$\alpha \approx 1$$, still large at $$\alpha \approx 0.8$$, much smaller by $$\alpha \approx 0.5$$. This is exactly the qualitative story: near‑full tables explode in probe length; roomy tables are much faster.
+
+*   **Worst‑case grows toward $$O(n)$$ when the table is tight**: At `m = 9677` (≈ full), your max probes are **9 623**, i.e., close to scanning the whole table. That’s exactly the “near full ⇒ worst‑case $$O(n)$$” behavior we discussed.
+
+***
+
+## ⚠️ Where your numbers diverge (and why)
+
+Under the standard **uniform hashing** assumption, the well‑known approximation for **successful search with linear probing** is:
+
+$$
+\mathbb{E}[\text{slots examined}] \;\approx\; \tfrac{1}{2}\Big(1 + \tfrac{1}{1-\alpha}\Big)
+\quad\Rightarrow\quad
+\mathbb{E}[\text{probes}] \;\approx\; \tfrac{1}{2}\Big(1 + \tfrac{1}{1-\alpha}\Big) - 1.
+$$
+
+*   For **moderate load** (say $$\alpha \approx 0.5\text{–}0.8$$), this predicts **about 1.5–3 slots** on average.
+*   In your data, even at $$\alpha \approx 0.5$$ (e.g., `m=19373`), you measure **≈ 4.06 slots**; at $$\alpha \approx 0.8$$ (e.g., `m=12097`), you measure **≈ 26.8 slots**—an order of magnitude above the uniform model.
+
+**Interpretation:** your hash `zip % m` is **not uniform** for these keys and moduli. Swedish postcodes are highly structured; when `m` is composite (e.g., **14 000, 13 600, 20 000**), the last digits and ranges of `zip` tend to **pile into runs of indices**, creating **primary clustering** that linear probing amplifies. This also shows up in separate chaining as **more empties** (and fewer non‑empty buckets) than a Poisson‑like spread would predict—i.e., keys concentrate into fewer buckets rather than sprinkling uniformly.
+
+You can also see that **primes help**:
+
+*   At **`m=19 373 (≈ 2×n, prime)`**, your mean is ≈ **4.06 slots**—still above theory but **much closer** than composite sizes near the same load factor.
+*   At composite sizes (**14 000, 13 600, 20 000**) your means jump way up despite similar or even **lower** load factors, again pointing at **hash–modulus interaction** rather than pure load factor.
+
+***
+
+## 📌 Bottom line
+
+*   **Trends match**: Bigger table ⇒ fewer probes; near‑full ⇒ catastrophic; chaining improves as `m` grows; primes typically beat “round” sizes.
+*   **Magnitudes don’t match uniform theory**: Your averages are **much higher** than $$\tfrac{1}{2}(1 + 1/(1-\alpha))$$ would suggest. That’s **not a contradiction**—it just means **uniform hashing does not hold** with `index = zip % m` for these datasets.
+
+***
+
+## ✅ What to do to match theory more closely (and speed things up)
+
+If you want your measured means to approach the textbook values:
+
+1.  **Mix the integer key before indexing** (don’t use raw `zip % m`):
+    ```c
+    // 32-bit mix, inexpensive and good enough for lab work
+    uint32_t x = (uint32_t)zip;
+    x ^= x >> 16;
+    x *= 0x7feb352d;
+    x ^= x >> 15;
+    x *= 0x846ca68b;
+    x ^= x >> 16;
+    int idx = (int)(x % m);        // or mask if capacity is a power of two
+    ```
+    This destroys regular patterns in the postal codes so buckets/probe starts are more uniform.
+
+2.  **Prefer prime capacities** for `% m` hashing (e.g., 13 513, 14 519, 17 389, 19 373).  
+    If you need **power‑of‑two** tables for speed, then **mask** (`idx = x & (m-1)`) but **only after mixing** (as above), otherwise low bits of `zip` will dominate.
+
+3.  For open addressing, consider **double hashing** (second step like `1 + (x % (m-1))`) instead of pure linear probing to reduce clustering in the probe sequence.
+
+If you like, share a re‑run for, say, **`m=19373` with the mix above**—I expect your **mean slots** to come down significantly toward the theoretical \~**1.5–2.0** range at $$\alpha \approx 0.5$$, and your high percentiles to tighten as well.
+
+***
+
+## 🧭 How to write this up in your report
+
+*   **State the theory qualitatively** (as you quoted): O(1) average at low load; grows toward O(n) as load $$\to 1$$; worst‑case O(n).
+*   **Show your measurements** and **call out the divergence** in magnitude: “Our measured averages exceed the uniform‑hash prediction by factors ranging from \~2× to >10× for certain `m`.”
+*   **Explain why** (non‑uniform hashing + clustering) and **demonstrate the fix** (key mixing and/or prime `m`) with a before/after table.
+
+If you want, I can **generate a small “before/after” experiment** plus a LaTeX table or plot you can paste directly into the report.
