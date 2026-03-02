@@ -1,0 +1,17 @@
+Bromma, Bromma blocks, 3
+Bromma blocks, Annedal, 1
+Bromma blocks, KTH Kista, 8
+Bromma, Alvik, 2.5
+Alvik, Telefonplan, 6
+Bromma, Solna Strand, 3.2
+Solna Strand, Karolinska sjukhuset, 4.2
+Karolinska sjukhuset, AlbaNova, 2.4
+KTH M-building, KTH Campus, 0.65
+KTH Campus D-E-building, KTH M-building, 0.85
+KTH Campus D-E-building, Telefonplan, 9.1
+Solna Strand, KTH Solna, 4.2
+KTH Solna, Aula Medica, 0.25
+Aula Medica, Haga, 0.7
+Haga, AlbaNova, 2.1
+AlbaNova, KTH Campus D-E-building, 1.7
+KTH Campus D-E-building, GIH-badet, 0.45
