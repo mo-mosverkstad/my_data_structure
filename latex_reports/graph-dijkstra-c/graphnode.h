@@ -4,6 +4,7 @@
 struct node{
     char *name;
     struct vec *edges;
+    bool visited;
 };
 
 struct edge{

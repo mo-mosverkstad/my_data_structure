@@ -18,7 +18,7 @@ struct graph{
 // graph_fload: graph file load, fname: file name, NULL for failed load
 // TODO: Clean allocated resources whenever allocation/operation fails and return an error message
 // TODO: Trim string if needed
-struct graph *graph_fload(char *fname, size_t cap) { 
+struct graph *graph_fload(char *fname, size_t cap, bool double_linked) { 
     struct hashtable *nodes_ht = ht_create(cap, hash_str, cmp_str);
     if (!nodes_ht) return NULL;
     struct graph *graph = (struct graph *) malloc(sizeof(struct graph));
@@ -72,7 +72,7 @@ struct graph *graph_fload(char *fname, size_t cap) {
         }
     
         connect(src, dst, weight);
-        connect(dst, src, weight);
+        if (double_linked) connect(dst, src, weight);
     }
     free(lineptr);
     fclose(fptr);

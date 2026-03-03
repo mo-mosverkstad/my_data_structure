@@ -78,6 +78,8 @@ int shortest(struct node *src, struct node *dst, int remaining) {
     if (src == dst) {
         return 0;
     }
+    // if (src->visited) return -1;
+    // src->visited = true;
     char *next = "<NONE>";
     int sofar = -1;
     struct vec *edges = src->edges;
@@ -91,18 +93,39 @@ int shortest(struct node *src, struct node *dst, int remaining) {
             }
         }
     }
+    src->visited = false;
     printf("Next: %s\n", next);
     return sofar;
 }
 
 int main(){
-    struct graph *my_graph = graph_fload("temp.csv", 27);
+    // configs
+    
+    /*
+    char *fname = "temp.csv";
+    int ht_size = 27;
+    char *src_name = "Telefonplan";
+    char *dst_name = "Bromma";
+    bool doubly_linked = true;
+    int limit = 11000;
+    */
+
+    
+    char *fname = "europe.csv";
+    int ht_size = 259;
+    char *src_name = "Göteborg";
+    char *dst_name = "Malmö";
+    bool doubly_linked = true;
+    int limit = 200;
+
+    // implementation
+    struct graph *my_graph = graph_fload(fname, ht_size, doubly_linked);
     if (!my_graph) {
         printf("ERROR: Failed to load graph\n");
         return 1;
     }
-    struct node *src = ht_get(my_graph->nodes, "Telefonplan");
-    struct node *dst = ht_get(my_graph->nodes, "Bromma");
+    struct node *src = ht_get(my_graph->nodes, src_name);
+    struct node *dst = ht_get(my_graph->nodes, dst_name);
     if (!src){
         printf("ERROR: Invalid source\n");
         return 1;
@@ -111,7 +134,6 @@ int main(){
         printf("ERROR: Invalid destination\n");
         return 1;
     }
-    int limit = 17000;
     
     printf("Loaded CSV graph:\n");
     graph_print(my_graph);

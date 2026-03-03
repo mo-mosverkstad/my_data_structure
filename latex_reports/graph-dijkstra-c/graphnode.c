@@ -8,6 +8,7 @@
 struct node{
     char *name;
     struct vec *edges;
+    bool visited;
 };
 
 struct edge{
@@ -21,6 +22,7 @@ struct node *node_create(char *name){
     if (!nd) return NULL;
     nd->name = strdup(name);
     nd->edges = vec_create(sizeof(struct edge));
+    nd->visited = false;
     if (!nd->edges){
         free(nd);
         return NULL;
