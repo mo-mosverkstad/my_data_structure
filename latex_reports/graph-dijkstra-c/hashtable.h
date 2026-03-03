@@ -21,6 +21,7 @@ void ht_free(struct hashtable *ht);
 bool ht_insert(struct hashtable *ht, void *key, void *value);
 void *ht_get(struct hashtable *ht, void *key);
 bool ht_remove(struct hashtable *ht, void *key);
+void ht_foreach(struct hashtable *ht, void (*callback)(void *key, void *value));
 void ht_print(struct hashtable *ht);
 
 size_t hash_str(const void *name, size_t mod);

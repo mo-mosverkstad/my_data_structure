@@ -71,7 +71,7 @@ bool ht_insert(struct hashtable *ht, void *key, void *value) {
     return true;
 }
 
-// valid pointer adress for successful operation, NULL for failed operation
+// valid pointer adress for existent key, NULL for non-existent key
 void *ht_get(struct hashtable *ht, void *key) {
     if (!ht) return NULL;
     size_t index = ht->hash(key, ht->cap);
@@ -103,6 +103,17 @@ bool ht_remove(struct hashtable *ht, void *key) {
         e = e->next;
     }
     return false;
+}
+
+// ht_foreach: Go through the hash table, order is not preserved, callback needed
+void ht_foreach(struct hashtable *ht, void (*callback)(void *key, void *value)){
+    for (size_t i = 0; i < ht->cap; i++) {
+        struct entry *e = ht->buckets[i];
+        while (e) {
+            callback(e->key, e->value);
+            e = e->next;
+        }
+    }
 }
 
 void ht_print(struct hashtable *ht) {

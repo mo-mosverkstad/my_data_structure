@@ -1,0 +1,5 @@
+Linear probing -> clustering (Clustered nodes)
+Problem in terms of removing, remove a value when collision since one becomes empty in linear probing chain
+Solution: Tombstone
+
+double hashing -> key -> h(key) -> (-> spread out, mod value optimal in prime number)

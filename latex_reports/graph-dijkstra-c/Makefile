@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-OBJ = temp.o vec.o hashtable.o
+OBJ = temp.o vec.o hashtable.o graphnode.o graph.o
 TARGET = main
 
 # Linking
