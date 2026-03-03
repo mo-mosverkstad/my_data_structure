@@ -72,6 +72,7 @@ struct graph *graph_fload(char *fname, size_t cap) {
         }
     
         connect(src, dst, weight);
+        connect(dst, src, weight);
     }
     free(lineptr);
     fclose(fptr);
