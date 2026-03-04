@@ -80,7 +80,7 @@ int shortest(struct node *src, struct node *dst, int remaining) {
     }
     // if (src->visited) return -1;
     // src->visited = true;
-    char *next = "<NONE>";
+    // char *next = "<NONE>";
     int sofar = -1;
     struct vec *edges = src->edges;
     for (unsigned int i = 0; i < edges->len; i++){
@@ -89,14 +89,39 @@ int shortest(struct node *src, struct node *dst, int remaining) {
             int d = shortest(edge->dst, dst, remaining - edge->weight);
             if (d >= 0 && ((sofar == -1) || (d + edge->weight < sofar))){
                 sofar = d + edge->weight;
-                next = edge->dst->name;
+                // next = edge->dst->name;
             }
         }
     }
     src->visited = false;
-    printf("Next: %s\n", next);
+    // printf("Next: %s\n", next);
     return sofar;
 }
+
+bool loop(struct node *path[], int k, struct node *n) {
+    for (int i = 0; i < k; i++) {
+        if (path[i] == n) return true;
+    }
+    return false;
+}
+
+int shortest_path(struct node *src, struct node *dst, struct node *path[], int k){
+    if (src == dst) return 0;
+    int sofar = -1;
+    struct vec *edges = src->edges;
+    for (unsigned int i = 0; i < edges->len; i++) {
+        struct edge *edge = vec_get(edges, i);
+        if (!loop(path, k, edge->dst)) {
+            path[k] = edge->dst;
+            int d = shortest_path(edge->dst, dst, path, k + 1);
+            if (d >= 0 && (sofar == -1 || d + edge->weight < sofar)) {
+                sofar = d + edge->weight;
+            }
+        }
+    }
+    return sofar;
+}
+
 
 int main(){
     // configs
@@ -110,13 +135,20 @@ int main(){
     int limit = 11000;
     */
 
-    
+    /*
     char *fname = "europe.csv";
     int ht_size = 259;
     char *src_name = "Göteborg";
     char *dst_name = "Malmö";
     bool doubly_linked = true;
     int limit = 200;
+    */
+    
+    char *fname = "temp.csv";
+    int ht_size = 27;
+    char *src_name = "Bromma";
+    char *dst_name = "Telefonplan";
+    bool doubly_linked = true;
 
     // implementation
     struct graph *my_graph = graph_fload(fname, ht_size, doubly_linked);
@@ -140,7 +172,12 @@ int main(){
     
     printf("\n");
     
-    int s = shortest(src, dst, limit);
+    // int s = shortest(src, dst, limit);
+    
+    const unsigned int path_size = 16;
+    struct node *path[path_size];
+    path[0] = src;
+    int s = shortest_path(src, dst, path, 1);
     printf("s = %d\n", s);
     
     graph_free(my_graph);
