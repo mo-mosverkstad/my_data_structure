@@ -8,6 +8,7 @@
 struct node{
     char *name;
     struct vec *edges;
+    int id;
     bool visited;
 };
 

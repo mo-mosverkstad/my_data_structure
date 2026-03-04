@@ -7,49 +7,7 @@
 #include "hashtable.h"
 #include "graphnode.h"
 #include "graph.h"
-
-/*
-int main() {
-    struct node *A = node_create("A");
-    struct node *B = node_create("B");
-    struct node *C = node_create("C");
-    
-    connect(A, B, 5);
-    connect(A, C, 10);
-    connect(B, C, 3);
-    
-    node_print(A);
-    node_print(B);
-    node_print(C);
-    
-    node_free(A);
-    node_free(B);
-    node_free(C);
-}
-
-int main() {
-    struct hashtable *ht = ht_create(16, hash_str, cmp_str);
-
-    ht_insert(ht, "apple", "red");
-    ht_insert(ht, "banana", "yellow");
-    ht_insert(ht, "grape", "purple");
-    ht_insert(ht, "lemon", "yellow");
-    ht_insert(ht, "lime", "green");
-
-    printf("Hashtable contents:\n");
-    ht_print(ht);
-
-    printf("\nGet apple: %s\n", (char *)ht_get(ht, "apple"));
-    printf("Get lime: %s\n", (char *)ht_get(ht, "lime"));
-
-    ht_remove(ht, "banana");
-    printf("\nAfter removing banana:\n");
-    ht_print(ht);
-
-    ht_free(ht);
-    return 0;
-}
-*/
+#include "priorityqueue.h"
 
 /*
 int main(int argc, char* argv[]) {
@@ -73,7 +31,7 @@ int main(int argc, char* argv[]) {
 }
 */
 
-
+// naive impl 1
 int shortest(struct node *src, struct node *dst, int remaining) {
     if (src == dst) {
         return 0;
@@ -98,6 +56,7 @@ int shortest(struct node *src, struct node *dst, int remaining) {
     return sofar;
 }
 
+// helper function
 bool loop(struct node *path[], int k, struct node *n) {
     for (int i = 0; i < k; i++) {
         if (path[i] == n) return true;
@@ -105,6 +64,7 @@ bool loop(struct node *path[], int k, struct node *n) {
     return false;
 }
 
+// naive impl 2
 int shortest_path(struct node *src, struct node *dst, struct node *path[], int k){
     if (src == dst) return 0;
     int sofar = -1;
@@ -122,8 +82,93 @@ int shortest_path(struct node *src, struct node *dst, struct node *path[], int k
     return sofar;
 }
 
+// helpers to Dijkstra's algorithm
+struct path {
+    struct node *node;
+    int weight;
+    struct node *prev;
+};
 
-int main(){
+int path_cmp(const void *a, const void *b) {
+    const struct path *pa = (const struct path *) a;
+    const struct path *pb = (const struct path *) b;
+    return pa->weight - pb->weight;
+}
+
+// Dijkstra's algorithm
+struct path **dijkstra(struct node *src, struct node *dst, int n_nodes){
+    struct priority_queue *pq = pq_create(n_nodes, path_cmp);
+    if (!pq) return NULL;
+    struct path **done = calloc(n_nodes, sizeof(struct path *));
+    if (!done) {
+        pq_free(pq);
+        return NULL;
+    }
+
+    struct path *start = (struct path *) malloc(sizeof(struct path));
+    start->node = src;
+    start->weight = 0;
+    start->prev = NULL;
+    pq_enqueue(pq, start);
+    while (pq->size > 0) {
+        struct path *current;
+        pq_dequeue(pq, (void **) &current);
+        int id = current->node->id;
+
+        if (done[id] == NULL){
+            done[id] = current;
+            // destination reached?
+            if (current->node == dst) break;
+            // expand neighbours
+            struct vec *edges = current->node->edges;
+            for (unsigned int i = 0; i < edges->len; i++) {
+                struct edge *e = (struct edge *) vec_get(edges, i);
+                if (done[e->dst->id] != NULL) continue;
+                struct path *new_path = malloc(sizeof(struct path));
+                new_path->node = e->dst;
+                new_path->weight = current->weight + e->weight;
+                new_path->prev = current->node;
+
+                pq_enqueue(pq, new_path);
+            }
+        }
+        else{
+            free(current);
+        }
+    }
+    pq_free(pq);
+    return done;  // dst unreachable
+}
+
+void print_shortest_path(struct path **done, struct node *dst){
+    struct path *p = done[dst->id];
+    if (!p) {
+        printf("No path found\n");
+        return;
+    }
+
+    printf("Distance: %d\nPath: ", p->weight);
+
+    // Build path in reverse
+    struct node *path[256];
+    int len = 0;
+    while (p) {
+        path[len++] = p->node;
+        if (!p->prev)
+            break;
+        p = done[p->prev->id];
+    }
+
+    // Print path forward
+    for (int i = len - 1; i >= 0; i--) {
+        printf("%s", path[i]->name);
+        if (i > 0) printf(" -> ");
+    }
+
+    printf("\n");
+}
+
+int naive_test(){
     // configs
     
     /*
@@ -181,4 +226,70 @@ int main(){
     printf("s = %d\n", s);
     
     graph_free(my_graph);
+    return 0;
+}
+
+int dijkstra_test(){
+    // small driving road map
+    char *fname = "temp.csv";
+    int ht_size = 27;
+    char *src_name = "Bromma";
+    char *dst_name = "KTH Campus D-E-building";
+    bool doubly_linked = true;
+
+    struct graph *my_graph = graph_fload(fname, ht_size, doubly_linked);
+    if (!my_graph) {
+        printf("ERROR: Failed to load graph\n");
+        return 1;
+    }
+    
+    struct node *src = ht_get(my_graph->nodes, src_name);
+    struct node *dst = ht_get(my_graph->nodes, dst_name);
+    if (!src){
+        printf("ERROR: Invalid source\n");
+        return 1;
+    }
+    if (!dst){
+        printf("ERROR: Invalid destination\n");
+        return 1;
+    }
+    
+    printf("Loaded CSV graph:\n");
+    graph_print(my_graph);
+    printf("\n");
+    
+    // Assign unique IDs to all nodes
+    int node_count = 0;
+    struct hashtable *ht = my_graph->nodes;
+    for (size_t i = 0; i < ht->cap; i++) {
+        struct entry *entry = ht->buckets[i];
+        while (entry) {
+            struct node *n = (struct node *)entry->value;
+            n->id = node_count++;
+            entry = entry->next;
+        }
+    }
+    
+    // Run Dijkstra's algorithm
+    struct path **done = dijkstra(src, dst, node_count);
+    
+    if (done) {
+        printf("Shortest path from %s to %s:\n", src_name, dst_name);
+        print_shortest_path(done, dst);
+        
+        // Free the done array
+        for (int i = 0; i < node_count; i++) {
+            if (done[i]) free(done[i]);
+        }
+        free(done);
+    } else {
+        printf("ERROR: Dijkstra failed\n");
+    }
+    
+    graph_free(my_graph);
+    return 0;
+}
+
+int main(){
+    return dijkstra_test();
 }
