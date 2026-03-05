@@ -2,10 +2,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// Binary Search Tree (BST) based priority queue
+// Property: left child < parent < right child
+// Minimum element is always the leftmost node
+// No balancing - can degenerate to O(n) in worst case
+
 typedef struct bst_node {
     int value;
-    struct bst_node *left;
-    struct bst_node *right;
+    struct bst_node *left;   // Left subtree: values < current
+    struct bst_node *right;  // Right subtree: values > current
 } bst_node;
 
 typedef struct bst_tree {
@@ -45,20 +50,23 @@ void free_bst_tree(bst_tree *tr) {
 
 /**
  * Recursive helper function to add a value to the BST.
+ * Maintains BST property: left < parent < right
  * @param nd Current node in the recursion
  * @param value Value to insert
  * @return Pointer to the (possibly new) root of this subtree
  */
 static bst_node* add_node(bst_node *nd, int value){
     if (nd == NULL){
-        return construct_bst_node(value);
+        return construct_bst_node(value);  // Create new leaf node
     }
+    // Recursively insert based on comparison
     if (value < nd->value){
-        nd->left = add_node(nd->left, value);   // Insert in left subtree
+        nd->left = add_node(nd->left, value);   // Go left for smaller values
     }
     else if (value > nd->value){
-        nd->right = add_node(nd->right, value); // Insert in right subtree
+        nd->right = add_node(nd->right, value); // Go right for larger values
     }
+    // If value == nd->value, do nothing (no duplicates)
     return nd;
 }
 
@@ -73,32 +81,35 @@ bool bst_heap_enqueue(bst_tree *tr, int value){
     return true;
 }
 
+// Dequeue: Remove and return minimum element (leftmost node)
+// Time complexity: O(h) where h is tree height
 bool bst_heap_dequeue(bst_tree *tr, int* res_ptr) {
     if (tr == NULL || tr->root == NULL) {
-        return false;
+        return false;  // Empty tree
     }
     bst_node *parent = NULL;
     bst_node *current = tr->root;
 
-    // Traverse to leftmost node
+    // Traverse to leftmost node (minimum in BST)
+    // This is the node with no left child
     while (current->left != NULL) {
         parent = current;
         current = current->left;
     }
 
-    *res_ptr = current->value;
+    *res_ptr = current->value;  // Return minimum value
 
-    // Case 1: The root is the minimum (no left child at all)
+    // Remove the minimum node and reconnect tree
     if (parent == NULL) {
-        // Root becomes its right child
-        tr->root = current->right;
+        // Minimum is root (no left child at root)
+        tr->root = current->right;  // Root becomes its right subtree
     }
     else {
-        // Parent's left now becomes current's right subtree
-        parent->left = current->right;
+        // Minimum is not root
+        parent->left = current->right;  // Bypass current node
     }
 
-    free(current);
+    free(current);  // Free the removed node
     return true;
 }
 

@@ -21,3 +21,4 @@ void free_heap(heap* hp);
 bool tree_heap_enqueue(heap *hp, int value);
 bool tree_heap_dequeue(heap *hp, int *res_ptr);
 int push(heap *hp, int incr);
+int tree_heap_enqueue_depth(heap *hp, int value);
