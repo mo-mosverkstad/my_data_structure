@@ -1,0 +1,466 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+
+\usepackage{minted}
+\usepackage{siunitx}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{booktabs}   % for \toprule \midrule \bottomrule
+
+\usetikzlibrary{arrows,positioning,fit,calc,shapes.multipart}
+\tikzset{>=latex} % classic arrow tip for wide compatibility
+
+% -------- Styles --------
+\tikzset{
+  vertex/.style   = {circle, draw, very thick, minimum size=7mm, inner sep=0pt, font=\footnotesize},
+  donev/.style    = {vertex, fill=green!22},
+  frontier/.style = {vertex, fill=yellow!25},
+  current/.style  = {vertex, ultra thick, draw=blue!70!black},
+  edgew/.style    = {sloped, midway, fill=white, inner sep=1pt, font=\scriptsize},
+  box/.style      = {draw, rounded corners, fill=gray!5, inner sep=2.5mm, align=left},
+  title/.style    = {font=\bfseries\footnotesize, align=left},
+  small/.style    = {font=\scriptsize}
+}
+
+% --- Base graph macro used by each panel ---
+\newcommand{\GraphBase}{
+  % Nodes
+  \node (S) [vertex] at (0,0)   {S};
+  \node (A) [vertex] at (2,1.3) {A};
+  \node (B) [vertex] at (2,-1.3){B};
+  \node (C) [vertex] at (4,1.3) {C};
+  \node (D) [vertex] at (6,0)   {D};
+
+  % Undirected edges (switch to -> if you want directed)
+  \draw[<->, very thick] (S) -- node[edgew] {4} (A);
+  \draw[<->, very thick] (S) -- node[edgew] {2} (B);
+  \draw[<->, very thick] (B) -- node[edgew] {1} (A);
+  \draw[<->, very thick] (A) -- node[edgew] {5} (C);
+  \draw[<->, very thick] (B) -- node[edgew] {8} (D);
+  \draw[<->, very thick] (C) -- node[edgew] {2} (D);
+
+  % Destination marker
+  \node[font=\scriptsize, above=1mm of D] {dest.};
+}
+
+% ---- Side-by-side boxes (done[] left, PQ right) ----
+\newcommand{\DonePQBoxes}[2]{%
+  \node[box, anchor=west, minimum width=5.6cm] at (7.2,0.7) (donebox) {%
+    {\bfseries done[] (finalized)}\\[-1mm]
+    \rule{5.4cm}{0.2pt}\\[-1mm]
+    \ttfamily\scriptsize
+    #1
+  };
+  \node[box, anchor=west, minimum width=5.6cm] at (13.2,0.7) (pqbox) {%
+    {\bfseries priority queue (min by dist)}\\[-1mm]
+    \rule{5.4cm}{0.2pt}\\[-1mm]
+    \ttfamily\scriptsize
+    #2
+  };
+}
+
+% Legend (used only once in the first panel of each figure)
+\newcommand{\Legend}{%
+  \node[box, anchor=north west] at (-0.2,-2.6) {%
+    \begin{tikzpicture}[every node/.style={font=\scriptsize}]
+      \node[vertex,  minimum size=3.5mm] (l1) {};
+      \node[anchor=west] at (0.35,0) {unvisited};
+      \node[donev,   minimum size=3.5mm] (l2) at (2.9,0) {};
+      \node[anchor=west] at (3.25,0) {in \texttt{done[]}};
+      \node[frontier, minimum size=3.5mm] (l3) at (6.3,0) {};
+      \node[anchor=west] at (6.65,0) {in PQ};
+      \node[current, minimum size=3.5mm] (l4) at (8.6,0) {};
+      \node[anchor=west] at (8.95,0) {extracted this iter};
+    \end{tikzpicture}
+  };
+}
+
+
+\begin{document}
+
+\title{
+    \textbf{Dijkstra algorithm in C}
+}
+\author{Mo Wang}
+\date{Spring 2026}
+
+\maketitle
+
+\section*{Introduction}
+
+This report examines the use of Dijkstra's algorithm as an efficient shortest-path algorithms on weighted, bidirectional railway graphs in C. The report starts by exploring the limitations of depth‑first search on larger maps such as exponential branch unrolling and demonstrates how a state-centric, cost‑guided strategy such as Dijkstra’s algorithm resolves these issues. By introducing the key data structures, including the finalized array of optimal paths and a priority queue of adjacent city candidates, a complete and iterative implementation of Dijkstra’s algorithm can be implemented, as well as evaluating its execution-time behavior on both Swedish and European railway network maps. The goal is to provide a clear and practical account of how shortest-path algorithm can be implemented efficiently and reliably at increasing scale of a graph.
+
+\section*{Reason for Dijkstra's algorithm}
+Despite the simplicity and intuitiveness of depth-first search that is fundamentally a path-enumeration algorithm, it remains ineffective because every feasible route is explored without memoization, resulting in recomputation of the same subproblem repeatedly whenever a city is reached through different path prefixes. Even with pruning (budget limits, loop-avoidance, or branch-and-bound), DFS still grows exponentially with path length, making it unsuitable for larger graphs or for long-distance routing. In contrast, Dijkstra’s algorithm explores cities in order of increasing tentative distance and remembers the best known travel time to each city as it proceeds. Once a city has its shortest distance fixed, it is never revisited or recomputed.This transforms the problem from exponential \(O(b^d)\) behavior with average branching factor $b$ and depth $d$ into a scalable polynomial‑time procedure \(O((V + E) \log V)\) with $E$ edges (connections) and $V$ vertices (cities). For the Swedish network, DFS-BB barely remains practical; for a European‑scale network, DFS becomes intolerably slow while Dijkstra completes almost instantly. For shortest–path problems on weighted graphs, Dijkstra is the appropriate and scalable choice.
+
+\section*{Data Structure}
+
+A rail network map can be modeled into a graph data structure by representing it as a directed (bidirectional) weighted graph. Cities are mapped as nodes or vertices, while railway connections as edges.
+
+\subsection*{City}
+
+Each node, as a city (\texttt{struct city}), stores its name and an adjacency list of outgoing edges in a linked list using edge structure blocks.
+For efficient indexing and traversal operations, each city also stores a compact identifier \texttt{id}, as well as \texttt{adj} as the first connection element in adjacent list, stored as a linked list. Additionally, \texttt{next\_in\_bucket} links cities that fall into the same hash-table bucket, which is used only for name lookup and is not part of the conceptual graph.
+
+\begin{minted}{c}
+struct city {
+    char  *name;             // UTF-8 city name (bytewise compare)
+    conn  *adj;              // adjacency list of neighbors
+    int    id;               // compact index (0..city_count-1)
+    city  *next_in_bucket;   // next in hash chain
+};
+\end{minted}
+
+\subsection*{Path}
+
+Additional data structures includes \texttt{path}, which stores each path connection from previous city to current city with total distance between origin city to current city.
+
+\begin{minted}{c}
+typedef struct path {
+    city *city;  // current city
+    city *prev;  // previous city on path
+    int dist;    // total distance from origin
+} path;
+\end{minted}
+
+\subsection*{Done}
+
+Each individual path entry data structure is collectively stored in the \texttt{done} array. The purpose of the \texttt{done} array is to store the shortest known path to each visited city. This structure allows the algorithm to keep track of finalized shortest distances while also storing the previous of each city, which makes it possible to reconstruct the full route after the algorithm completes.
+
+The \texttt{done} array acts as a record of all cities whose shortest path has been determined. Each index in the array corresponds to a city ID, and the stored entry contains information about the total distance to reach that city as well as the previous city in the path.
+
+\begin{minted}{c}
+// Initialize done[] array - all cities unvisited
+static path *init_done_array(int n) {
+    path *done = (path*)calloc((size_t)n, sizeof(path));
+    for (int i = 0; i < n; ++i) {
+        done[i].city = NULL;  // NULL means not visited
+        done[i].prev = NULL;
+        done[i].dist = INT_MAX;
+    }
+    return done;
+}
+\end{minted}
+
+\subsection*{Priority Queue}
+
+Another fundamental data structure is the priority queue which stores path entries. Smallest distance from origin city to current city has higher priority over longer distance. Using the priority queue, the shortest known path is always expanded first, which makes it easier to compare paths by distance.
+
+The priority queue is implemented as a array-based in directional heap with a dynamic array of path entries as well as the current number of elements in heap as well as a maximum capacity
+
+\begin{minted}{c}
+// --- priority queue for paths (min-heap based on distance) ---
+typedef struct pq {
+    path *a;    // dynamic array of path entries (heap storage)
+    int n;      // current number of elements in heap
+    int cap;    // allocated capacity of array
+} PriorityQueue;
+\end{minted}
+
+The common operations for heap are creating a new heap using function \texttt{pq\_new} and \texttt{pq\_free} for cleanup. 
+
+\begin{minted}{c}
+static PriorityQueue *pq_new(int cap);
+static void pq_free(PriorityQueue *pq);
+\end{minted}
+
+An element is enqueued using the function \texttt{pq\_push}, which wraps the current city, previous city and total distance to reach current city together from separate parameters into a path structure.
+\begin{minted}{c}
+static void pq_push(PriorityQueue *pq, city *c, city *prev, int dist);
+\end{minted}
+
+An element is dequeued using \texttt{pq\_pop}, where the return value adress is given. The function itself only returns a status flag: 1 for successful, 0 for empty queue
+
+\begin{minted}{c}
+static int pq_pop(PriorityQueue *pq, path *out)
+\end{minted}
+
+\section*{Dijkstra’s algorithm}
+
+Putting the pieces together, Dijkstra's algorithm maintains its path structures in two main data structures: the finalized path array (\texttt{done}) and a priority queue. The \texttt{done} array contains the shortest known path to each city that has been fully explored, while the priority queue keeps track of the paths that are still candidates for exploration, ordered by their current total distance from the source city.
+
+\subsection*{Description of each step}
+The algorithm is visualized in Figure~\ref{fig:dijkstra-steps} where each step of the process is described. For each step, the algorithm starts by removing the shortest path from the priority queue by extracting minimal path from the priority queue. If the fetched path put an end at the destination, the path is therefore found. Otherwise, if the fetched city is encountered the first time, which means it has not been finalized previously, it will be placed visited and the path will be placed into done array. Subsequently, all adjacent unvisited cities will be explored and enqueued into the priority queue. After each step, the process repeats over, until the destination city is reached, where the path is backtracked and reconstructed.
+
+\begin{enumerate}
+    \item Remove shortest path from priority queue
+
+    \item If path ends at destination, the process is finished
+    \item If first time encountering this city:
+    \begin{enumerate}
+        \item Place path in \texttt{done[]} array
+        \item Expand: add all adjacent cities to queue with updated distances
+    \end{enumerate}
+\end{enumerate}
+
+\subsection*{Algorithm illustration}
+In Figure~\ref{fig:dijkstra-steps}, the algorithm searches for a path from city S to city D. The city S is initially pushed into the priority queue, which is described in step 1.
+
+In step 2, the algorithm starts with dequeuing the city S and pushing it into the finalized array since it was encountered before. Afterwards, its adjacent cities are enqueued.
+
+In step 3, city B is removed from priority queue due to its shortest distance and pushed into the finalized array, while only its adjacent city D is enqueued, since its other adjacent city A is already visited, as well as having their distance incremented which is comparable to the source city.
+
+In step 4, city A is removed from priority queue and pushed into finalized array while its only adjacent city C is enqueued.
+
+In step 5, when city C is dequeued, the connection C -> D is relaxed. Since the previous city of D was B, it is updated to C, because a shorter path to D via C has been found.
+
+Finally, in step 6, city D is extracted from the priority queue. As D is the destination city, the algorithm terminates and the shortest path from S to D can be reconstructed using the \texttt{done[]} array.
+
+\begin{figure}[htbp]
+\begin{center}
+% Global scale for Figure 1 (adjust if needed)
+\def\gscaleTop{0.6}
+\begin{tikzpicture}[x=1cm,y=1cm,scale=\gscaleTop, every node/.style={transform shape}]
+
+% One column x position
+\def\xcol{0}
+
+% Row positions for three rows
+\def\rowA{0}
+\def\rowB{-5.5}
+\def\rowC{-11.0}
+\def\rowD{-16.5}
+\def\rowE{-22}
+\def\rowF{-27.5}
+
+% --- Step 1 / Iteration 0 ---
+\begin{scope}[shift={(\xcol,\rowA)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 1 — Iteration 0: initialize (source S)};
+  \GraphBase
+  \node[current] at (S) {S};
+  \DonePQBoxes{(empty)}{(S, dist=0, prev=--)}
+  \Legend
+\end{scope}
+
+% --- Step 2 / Iteration 1 ---
+\begin{scope}[shift={(\xcol,\rowB)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 2 — Iteration 1: extract S, relax neighbors A and B};
+  \GraphBase
+  \node[donev] at (S) {S};
+  \node[frontier] at (A) {A};
+  \node[current]  at (B) {B};
+  \DonePQBoxes{S: dist=0, prev=--}{(B, 2, prev=S)\\(A, 4, prev=S)}
+\end{scope}
+
+% --- Step 3 / Iteration 2 ---
+\begin{scope}[shift={(\xcol,\rowC)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 3 — Iteration 2: extract B, improve A via B; discover D via B};
+  \GraphBase
+  \node[donev] at (S) {S};
+  \node[donev] at (B) {B};
+  \node[current] at (A) {A};
+  \node[frontier] at (D) {D};
+  \draw[very thick, blue!60] (B) -- (S);
+  \DonePQBoxes{S: 0, prev=--\\B: 2, prev=S}{(A, 3, prev=B)\\(D,10, prev=B)}
+\end{scope}
+
+% --- Step 4 / Iteration 3 ---
+\begin{scope}[shift={(\xcol,\rowD)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 4 — Iteration 3: extract A, discover C via A};
+  \GraphBase
+  \node[donev] at (S) {S};
+  \node[donev] at (B) {B};
+  \node[donev] at (A) {A};
+  \node[current] at (C) {C};
+  \node[frontier] at (D) {D};
+  \draw[very thick, blue!60] (B) -- (S);
+  \draw[very thick, blue!60] (A) -- (B);
+  \DonePQBoxes{S: 0, prev=--\\B: 2, prev=S\\A: 3, prev=B}{(C, 8, prev=A)\\(D,10, prev=B)}
+\end{scope}
+
+% --- Step 5 / Iteration 4 ---
+\begin{scope}[shift={(\xcol,\rowE)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 5 — Iteration 4: extract C, relax edge C--D (still 10)};
+  \GraphBase
+  \node[donev] at (S) {S};
+  \node[donev] at (B) {B};
+  \node[donev] at (A) {A};
+  \node[donev] at (C) {C};
+  \node[current] at (D) {D};
+  \draw[very thick, blue!60] (B) -- (S);
+  \draw[very thick, blue!60] (A) -- (B);
+  \draw[very thick, blue!60] (C) -- (A);
+  \DonePQBoxes{S: 0, prev=--\\B: 2, prev=S\\A: 3, prev=B\\C: 8, prev=A}{(D,10, prev=C)}
+\end{scope}
+
+% --- Step 6 / Iteration 5 ---
+\begin{scope}[shift={(\xcol,\rowF)}]
+  \node[title, anchor=west] at (-0.1,2.5) {Step 6 — Iteration 5: extract D (destination reached), reconstruct path};
+  \GraphBase
+  \node[donev] at (S) {S};
+  \node[donev] at (B) {B};
+  \node[donev] at (A) {A};
+  \node[donev] at (C) {C};
+  \node[donev] at (D) {D};
+  % Final path S -> B -> A -> C -> D
+  \draw[ultra thick, red!70] (B) -- (S);
+  \draw[ultra thick, red!70] (A) -- (B);
+  \draw[ultra thick, red!70] (C) -- (A);
+  \draw[ultra thick, red!70] (D) -- (C);
+  \DonePQBoxes{S: 0, prev=--\\B: 2, prev=S\\A: 3, prev=B\\C: 8, prev=A\\D:10, prev=C}{(empty)}
+\end{scope}
+
+\end{tikzpicture}
+\end{center}
+\caption{Dijkstra algorithm steps}
+\label{fig:dijkstra-steps}
+\end{figure}
+
+\subsection*{Code implementation}
+The code implementation starts with initializing the finalized array (\texttt{done[]}) that tracks visited cities and a priority queue of path entries. For each iteration, a shortest adjacent path is popped out and early terminated if destination is reached. Otherwise, the city is pushed into finalized array, where each connection to its adjacent cities are relaxed. If the destination is reached successfully, the path is reconstructed by walking backward through the finalized \texttt{done[]} array, which is reported for benchmarking.
+
+\begin{minted}{c}
+// Returns distance to destination, or -1 if no path exists
+static int dijkstra(map_t *m, city *src, city *dst,
+                    path **done_out, int *done_count) {
+    int n = m->city_count;
+    path *done = init_done_array(n);
+    
+    PriorityQueue *pq = pq_new(n * 2);
+    pq_push(pq, src, NULL, 0);
+    
+    int visited = 0;
+    path current;
+    
+    while (pq_pop(pq, &current)) {
+        city *c = current.city;
+        
+        // Early termination: destination reached
+        if (c == dst) {
+            done[c->id] = current;
+            visited++;
+            pq_free(pq);
+            if (done_out) *done_out = done;
+            else free(done);
+            if (done_count) *done_count = visited;
+            return current.dist;
+        }
+        
+        // Skip stale entries (already visited)
+        if (done[c->id].city == NULL) {
+            done[c->id] = current;
+            visited++;
+            relax_neighbors(c, &current, done, pq);
+        }
+    }
+    
+    // No path found
+    pq_free(pq);
+    if (done_out) *done_out = done;
+    else free(done);
+    if (done_count) *done_count = visited;
+    return -1;
+}
+\end{minted}
+
+The operation of relaxing edges is processed by the helper function \texttt{relax\_neighbors}. It iterates over all adjacent (or neighboring) cities of the current city and, for each unvisited adjacent city, a tentative distance is computed from the source. This process is done by incrementing the value of the priority heap, instead of computational expensive dequeue-enqueue operation. The adjacent city, along with its predecessor and updated distance, is then added to the priority queue.
+
+\begin{minted}{c}
+// Relax edges: explore all neighbors of current city and add to queue
+static void relax_neighbors(city *c, path *current, path *done, PriorityQueue *pq) {
+    for (conn *e = c->adj; e; e = e->next) {
+        city *neighbor = e->dst;
+        // Only explore unvisited neighbors
+        if (done[neighbor->id].city == NULL) {
+            int new_dist = current->dist + e->dist;
+            pq_push(pq, neighbor, c, new_dist);
+        }
+    }
+}
+\end{minted}
+
+
+\section*{Benchmark and comparison with DFS}
+
+The benchmark is conducted by using \texttt{-O2} compiler flags with 1024 runs averaged. As summarized in Table~\ref{tab:dfsbb-vs-dijkstra}, Dijkstra's algorithm dramatically reduces execution time across all routes in Swedish railroad network map. For instance, route finding between Göteborg to Umeå drops from 5068~$\mu$s using DFS with branch-and-bound algorithm to 8.09~$\mu$s using Dijkstra's algorithm.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Route} & \textbf{Distance} & \textbf{DFS-BB ($\mu$s)} & \textbf{Dijkstra ($\mu$s)} & \textbf{Percentage (\%)} \\
+\midrule
+Malmö $\to$ Göteborg         & 153 & 14.57   & 3.03  & 20.80 \\
+Göteborg $\to$ Stockholm     & 211 & 32.25   & 5.11  & 15.84 \\
+Malmö $\to$ Stockholm        & 273 & 48.47   & 5.74  & 11.85 \\
+Stockholm $\to$ Sundsvall    & 327 & 104.63  & 8.73  &  8.35 \\
+Stockholm $\to$ Umeå         & 517 & 938.56  & 6.15  &  0.66 \\
+Göteborg $\to$ Sundsvall     & 515 & 994.56  & 9.08  &  0.91 \\
+Sundsvall $\to$ Umeå         & 190 & 15.48   & 3.20  & 20.67 \\
+Umeå $\to$ Göteborg          & 705 & 115.96  & 4.93  &  4.25 \\
+Göteborg $\to$ Umeå          & 705 & 5067.98 & 8.09  &  0.16 \\
+\bottomrule
+\end{tabular}
+\caption{DFS-BB vs.\ Dijkstra on selected routes (times in $\mu$s).}
+\label{tab:dfsbb-vs-dijkstra}
+\end{table}
+
+\section*{Time complexity}
+
+Measuring how the algorithm scale in a growing map can be performed by computing shortest paths from a single source to a set of European cities. For each destination the path length (in minutes), the execution time, and the number of entries in the \texttt{done[]} finalized array at the moment the destination is finalized. The \texttt{done[]} size serves as a proxy for how many cities were effectively “checked” by the search.
+
+\subsection*{Shortest paths from Paris to twelve European cities}
+
+The European railway graph is used and the city \emph{Paris} is selected as the source city. During benchmark, for each destination, distance in minutes, execution time in microseconds, and \texttt{done[]} size are recorded at the time the destination is settled.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrr l}
+\toprule
+\textbf{Destination} & \textbf{Distance} & \textbf{Time ($\mu$s)} & \textbf{\texttt{done[]} size} & \textbf{Notes} \\
+\midrule
+Berlin      & 478  & 6.70  & 34 &  \\
+London      & 144  & 2.98  & 7  &  \\
+Madrid      & 572  & 5.20  & 41 &  \\
+Rome        & --   & 0.68  & -- & Not found in dataset \\
+Amsterdam   & 236  & 3.46  & 16 &  \\
+Brussels    & --   & 1.38  & -- & Not found in dataset \\
+Vienna      & --   & 0.43  & -- & Not found in dataset \\
+Prague      & --   & 0.72  & -- & Not found in dataset \\
+Copenhagen  & --   & 0.92  & -- & Not found in dataset \\
+Stockholm   & 1048 & 9.38  & 96 &  \\
+Warsaw      & --   & 0.76  & -- & Not found in dataset \\
+Budapest    & 847  & 9.69  & 66 &  \\
+\bottomrule
+\end{tabular}
+\caption{Fixed source city Paris to different European cities. The distance, time and finalized array size (\texttt{done[]}) are measured and shown}
+\label{tab:paris-europe}
+\end{table}
+
+The observation from benchmark result shows that successful routes to e.g. London, Amsterdam, Berlin, Madrid, Budapest, Stockholm) complete in \(\sim 3\)--\(10~\mu\)s while visiting from \(7\) up to \(\sim 100\) cities;. Longer or more branched routes (e.g., Stockholm) produce larger finalized arrays \texttt{done[]} and slightly longer execution times. Additionally, destinations that are not present in the dataset return quickly due to constant‑time average hash lookups (sub‑microsecond to \(\sim 1\)–\(2~\mu\)s). Summarizing the benchmark, the execution time correlates with the finalized array size (\texttt{done[]}): more settled cities leads to more queue operations and relaxations processed before the target is reached.
+
+\subsection*{Complexity reasoning and validation}
+
+A time complexity can be deducted with an arbitrary map with $n$ cities and $m$ connection, where the shortest paths from one source city and one destination city is computed.
+
+% \paragraph{Work per iteration.}
+At each iteration the minimal tentative path from the priority queue is extracted and one city is settled if it's the first time the city is popped. Settling a city happens at most once, giving an factor \(n\) from extractions. For the settled city, each of its immediate neighbors is relaxed, which leads to the contributing work being proportional to its branching factor or degree. Summed over the whole run, every undirected edge is considered at most twice, so total relaxations reaches \(O(m)\).
+
+% \paragraph{Priority queue costs.}
+Each queue insertion/decrease and extraction costs \(O(\log n)\). Since \(O(n)\) extractions and \(O(m)\) relaxations/inserts are performed, the overall complexity can be calculated to:
+\[
+T(n,m)\;=\;O\big((n + m)\log n\big).
+\]
+
+% \paragraph{Matching measurements.}
+Table~\ref{tab:paris-europe} shows that the execution time grows with the number of cities settled, which is the same as the size of the finalized array \texttt{done[]}. Larger size implies more extractions and relaxations, hence more \( \log n \) queue operations. Short routes with small finalized array sizes complete in a few microseconds, while longer routes with larger array sizes require proportionally more time, consistent with \(O((n+m)\log n)\). Any deviations at the low microsecond scale are dominated by constant factors, for example cache effects, allocator, or OS jitter.
+
+% \paragraph{Conclusion.}
+% The microbenchmarks from Paris confirm that runtime grows with the number of settled cities and the amount of relaxation work performed, and the trend agrees with the \(O((n+m)\log n)\) analysis. This alignment between \texttt{done[]} counts and timing provides a useful sanity check of the implementation’s asymptotic behavior on larger, denser European graphs.
+
+\section*{Conclusion}
+This report presents an improved C-based implementation of shortest–path search using Dijkstra's algorithm on weighted, bidirectional railway graphs and explains the reason for a state-centric, cost-aware strategy which is necessary for maps in practical scale. Starting from a UTF-8-safe hash-indexed city graph built directly from CSV, the core data structures, including adjacency lists, a finalized array (\texttt{done[]}) to record optimal routes, and a min‑heap priority queue, are assembled and utilized to produce a clean, iterative formulation of Dijkstra’s algorithm. Each step of the algorithm is illustrated using a small example to depict the execution process. The design algorithm is validated with benchmarks on the Swedish railway network map and then extends the measurements to a European railroad map from a single source to show how runtime scales with the number of settled cities. The result is a practical, reproducible template for shortest‑path computations that remains fast on small maps and continues to behave predictably as graph size and route length grow.
+
+\begin{minted}{c}
+
+\end{minted}
+\end{document}
